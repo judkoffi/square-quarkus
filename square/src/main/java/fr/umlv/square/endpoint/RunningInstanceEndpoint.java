@@ -27,10 +27,10 @@ public class RunningInstanceEndpoint {
 
 		System.out.println(request);
 		String servicePort = "servicePort";
-		String docerInstance = "docerInstance";
+		String dockerInstance = "docerInstance";
 
 		DeployResponse response = new DeployResponse(new Random().nextInt(), request.getAppName(), request.getPort(), servicePort,
-				docerInstance);
+				dockerInstance);
 
 		return Response.ok().entity(response.toJson()).build();
 	}
@@ -39,13 +39,13 @@ public class RunningInstanceEndpoint {
 	@Path("/list")
 	public Response list() {
 		String servicePort = "servicePort_";
-		String docerInstance = "docerInstance_";
+		String dockerInstance = "docerInstance_";
 
 		ArrayList<String> list = new ArrayList<String>();
 
 		for (int i = 0; i < 5; i++) {
 			list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, servicePort + i,
-					docerInstance + i, "1m50").toJson());
+					dockerInstance + i, "1m50").toJson());
 		}
 
 		return Response.ok().entity(list.toString()).build();
@@ -55,9 +55,9 @@ public class RunningInstanceEndpoint {
 	@Path("/stop")
 	public Response stop(StopInstanceRequest request) {
 		String servicePort = "servicePort_";
-		String docerInstance = "docerInstance_";
+		String dockerInstance = "docerInstance_";
 
-		RunningInstanceInfo result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort, docerInstance, "1m50");
+		RunningInstanceInfo result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort, dockerInstance, "1m50");
 
 		return Response.ok().entity(result.toJson()).build();
 	}
