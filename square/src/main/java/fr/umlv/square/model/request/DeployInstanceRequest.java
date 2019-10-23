@@ -2,13 +2,13 @@ package fr.umlv.square.model.request;
 
 import java.util.Objects;
 
-public class DeployRequest {
+public class DeployInstanceRequest {
 	private String app;
 
-	public DeployRequest() {
+	public DeployInstanceRequest() {
 	}
 
-	public DeployRequest(String app) {
+	public DeployInstanceRequest(String app) {
 		this.app = Objects.requireNonNull(app);
 	}
 
@@ -30,7 +30,7 @@ public class DeployRequest {
 
 	@Override
 	public String toString() {
-		return "request :" + app;
+		return "deploy request :" + app;
 	}
 
 }
