@@ -27,6 +27,18 @@ abstract class AbstractInstanceInfo {
 		joiner.add("\"docker-instance\":\"" + dockerInstance + "\"");
 		return joiner.toString();
 	}
+	
+	public int getId() {
+		return id;
+	}
+	
+	public String getAppName() {
+		return appName;
+	}
+	
+	public String getDockerInstance() {
+		return dockerInstance;
+	}
 
 	public String toJson() {
 		return "{" + buildJson() + "}";
