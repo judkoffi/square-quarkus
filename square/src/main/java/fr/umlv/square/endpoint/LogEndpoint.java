@@ -20,7 +20,7 @@ import fr.umlv.square.model.response.LogTimeResponse;
 @Path("/logs")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class LogsEndpoint {
+public class LogEndpoint {
 	@GET
 	@Path("/{time}")
 	public Response list(@PathParam("time") String time) {

@@ -19,17 +19,16 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 @Path("/app")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class RunningInstanceEndpoint {
+public class RunningAppEndpoint {
 
 	@POST
 	@Path("/deploy")
 	public Response deploy(DeployInstanceRequest request) {
-
-		System.out.println(request);
+	
 		var servicePort = "servicePort";
 		var dockerInstance = "docerInstance";
 
-		var response = new DeployResponse(new Random().nextInt(), request.getAppName(), request.getPort(), servicePort,
+		var response = new DeployResponse(1, request.getAppName(), request.getPort(), servicePort,
 				dockerInstance);
 
 		return Response.ok().entity(response.toJson()).build();

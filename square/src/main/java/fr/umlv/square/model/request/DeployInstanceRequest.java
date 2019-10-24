@@ -28,6 +28,10 @@ public class DeployInstanceRequest {
 		return Integer.parseInt(app.split(":")[1]);
 	}
 
+	public boolean isEmpty() {
+		return app == null || app.length() == 0;
+	}
+
 	@Override
 	public String toString() {
 		return "deploy request :" + app;
