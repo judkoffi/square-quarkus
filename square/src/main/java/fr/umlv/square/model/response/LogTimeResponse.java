@@ -15,6 +15,11 @@ public class LogTimeResponse  extends AbstractInstanceInfo {
 		this.timestamp = Objects.requireNonNull(timestamp);
 	}
 
+	
+	public String getTimestamp() {
+		return timestamp;
+	}
+	
 	@Override
 	String buildJson() {
 		return super.buildJson() + ", \"message\":\"" + message + "\"" + ", \"timestamp\":\"" + timestamp + "\"";

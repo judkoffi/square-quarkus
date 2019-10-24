@@ -2,8 +2,10 @@ package fr.umlv.square.endpoint;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -31,17 +33,31 @@ public class LogsEndpoint {
 
 	private static ArrayList<LogTimeResponse> fillArrayList() {
 		ArrayList<LogTimeResponse> arrayList = new ArrayList<LogTimeResponse>(10);
-		for (int i = 0; i < 10; i++) {
-			arrayList.add(new LogTimeResponse(i, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
-					new Timestamp(System.currentTimeMillis() + i).toString()));
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < 5; j++) {
+				arrayList.add(new LogTimeResponse(j, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
+					new Timestamp(System.currentTimeMillis() - (i+j * 1000 * 60)).toString()));
+			}
 		}
 		return arrayList;
+	}
+
+	private static long convertMinuteToMillisecond(long minutes) {
+		return TimeUnit.MINUTES.toMillis(minutes);
+	}
+
+	private static Stream<LogTimeResponse> logsFiltedByTime(String timestamp) {
+		long timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
+		Timestamp filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
+		return data.stream().filter((elt) -> elt.getTimestamp().compareTo(filterTimestamp.toString()) >0 );
+
 	}
 
 	@GET
 	@Path("/{time}")
 	public Response list(@PathParam("time") String time) {
-		return Response.ok().entity(data.stream().map(e -> e.toJson()).collect(Collectors.toList()).toString()).build();
+		return Response.ok().entity(logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList()).toString())
+				.build();
 	}
 
 	private static Predicate<LogTimeResponse> getPredicate(String filter) {
@@ -61,9 +77,8 @@ public class LogsEndpoint {
 	@GET
 	@Path("/{time}/{filter}")
 	public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
-		return Response.ok().entity(
-				data.stream().filter(getPredicate(filter)).map(e -> e.toJson()).collect(Collectors.toList()).toString())
-				.build();
+		return Response.ok().entity(logsFiltedByTime(time).filter(getPredicate(filter)).map(e -> e.toJson())
+				.collect(Collectors.toList()).toString()).build();
 	}
 
 	public static boolean isNumeric(String filter) {
@@ -80,5 +95,4 @@ public class LogsEndpoint {
 		else
 			return FilterType.UNKNOWN;
 	}
-
 }
