@@ -21,6 +21,25 @@ import fr.umlv.square.model.response.LogTimeResponse;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LogsEndpoint {
+	@GET
+	@Path("/{time}")
+	public Response list(@PathParam("time") String time) {
+		if (!isNumeric(time))
+			return Response.status(400).entity("Invalid time value").build();
+
+		return Response.ok().entity(logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList()).toString())
+				.build();
+	}
+
+	@GET
+	@Path("/{time}/{filter}")
+	public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
+		if (!isNumeric(time))
+			return Response.status(400).entity("Invalid time value").build();
+
+		return Response.ok().entity(logsFiltedByTime(time).filter(getPredicate(filter)).map(e -> e.toJson())
+				.collect(Collectors.toList()).toString()).build();
+	}
 
 	private final static ArrayList<LogTimeResponse> data;
 	static {
@@ -32,14 +51,14 @@ public class LogsEndpoint {
 	};
 
 	private static ArrayList<LogTimeResponse> fillArrayList() {
-		ArrayList<LogTimeResponse> arrayList = new ArrayList<LogTimeResponse>(10);
+		var arraylist = new ArrayList<LogTimeResponse>(10);
 		for (int i = 0; i < 2; i++) {
 			for (int j = 0; j < 5; j++) {
-				arrayList.add(new LogTimeResponse(j, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
-					new Timestamp(System.currentTimeMillis() - (i+j * 1000 * 60)).toString()));
+				arraylist.add(new LogTimeResponse(j, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
+						new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
 			}
 		}
-		return arrayList;
+		return arraylist;
 	}
 
 	private static long convertMinuteToMillisecond(long minutes) {
@@ -47,22 +66,16 @@ public class LogsEndpoint {
 	}
 
 	private static Stream<LogTimeResponse> logsFiltedByTime(String timestamp) {
-		long timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
-		Timestamp filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
-		return data.stream().filter((elt) -> elt.getTimestamp().compareTo(filterTimestamp.toString()) >0 );
+		var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
+		var filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
+		return data.stream().filter((elt) -> elt.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
 
-	}
-
-	@GET
-	@Path("/{time}")
-	public Response list(@PathParam("time") String time) {
-		return Response.ok().entity(logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList()).toString())
-				.build();
 	}
 
 	private static Predicate<LogTimeResponse> getPredicate(String filter) {
-		FilterType filterType = findFilterType(filter);
-		switch (filterType) {
+		var filterType = findFilterType(filter);
+		switch (filterType)
+		{
 		case ID:
 			return (e) -> e.getId() == Integer.parseInt(filter);
 		case APPLICATION:
@@ -72,13 +85,6 @@ public class LogsEndpoint {
 		default:
 			return (e) -> false;
 		}
-	}
-
-	@GET
-	@Path("/{time}/{filter}")
-	public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
-		return Response.ok().entity(logsFiltedByTime(time).filter(getPredicate(filter)).map(e -> e.toJson())
-				.collect(Collectors.toList()).toString()).build();
 	}
 
 	public static boolean isNumeric(String filter) {

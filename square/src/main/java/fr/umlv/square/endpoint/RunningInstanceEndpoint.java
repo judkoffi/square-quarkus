@@ -26,10 +26,10 @@ public class RunningInstanceEndpoint {
 	public Response deploy(DeployInstanceRequest request) {
 
 		System.out.println(request);
-		String servicePort = "servicePort";
-		String dockerInstance = "docerInstance";
+		var servicePort = "servicePort";
+		var dockerInstance = "docerInstance";
 
-		DeployResponse response = new DeployResponse(new Random().nextInt(), request.getAppName(), request.getPort(), servicePort,
+		var response = new DeployResponse(new Random().nextInt(), request.getAppName(), request.getPort(), servicePort,
 				dockerInstance);
 
 		return Response.ok().entity(response.toJson()).build();
@@ -38,10 +38,10 @@ public class RunningInstanceEndpoint {
 	@GET
 	@Path("/list")
 	public Response list() {
-		String servicePort = "servicePort_";
-		String dockerInstance = "docerInstance_";
+		var servicePort = "servicePort_";
+		var dockerInstance = "docerInstance_";
 
-		ArrayList<String> list = new ArrayList<String>();
+		var list = new ArrayList<String>();
 
 		for (int i = 0; i < 5; i++) {
 			list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, servicePort + i,
@@ -54,10 +54,10 @@ public class RunningInstanceEndpoint {
 	@POST
 	@Path("/stop")
 	public Response stop(StopInstanceRequest request) {
-		String servicePort = "servicePort_";
-		String dockerInstance = "docerInstance_";
+		var servicePort = "servicePort_";
+		var dockerInstance = "docerInstance_";
 
-		RunningInstanceInfo result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort, dockerInstance, "1m50");
+		var result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort, dockerInstance, "1m50");
 
 		return Response.ok().entity(result.toJson()).build();
 	}
