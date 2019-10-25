@@ -87,7 +87,7 @@ public class LogEndpoint {
 		}
 	}
 
-	public static boolean isNumeric(String filter) {
+	private static boolean isNumeric(String filter) {
 		return filter.matches("-?\\d+(\\.\\d+)?"); // match a number with optional '-' and decimal.
 	}
 

@@ -24,12 +24,13 @@ public class RunningAppEndpoint {
 	@POST
 	@Path("/deploy")
 	public Response deploy(DeployInstanceRequest request) {
-	
+		if (request == null || !request.isValidRequest())
+			return Response.status(400, "Invalid post body").build();
+
 		var servicePort = "servicePort";
 		var dockerInstance = "docerInstance";
 
-		var response = new DeployResponse(1, request.getAppName(), request.getPort(), servicePort,
-				dockerInstance);
+		var response = new DeployResponse(1, request.getAppName(), request.getPort(), servicePort, dockerInstance);
 
 		return Response.ok().entity(response.toJson()).build();
 	}

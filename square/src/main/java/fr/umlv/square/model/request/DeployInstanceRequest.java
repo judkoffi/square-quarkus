@@ -25,11 +25,14 @@ public class DeployInstanceRequest {
 	}
 
 	public int getPort() {
-		return Integer.parseInt(app.split(":")[1]);
+		var splited = app.split(":")[1];
+		if (isNumeric(splited))
+			return Integer.parseInt(splited);
+		return -1;
 	}
 
-	public boolean isEmpty() {
-		return app == null || app.length() == 0;
+	public boolean isValidRequest() {
+		return isValidRawRequest() && !isEmptyRequest();
 	}
 
 	@Override
@@ -37,4 +40,15 @@ public class DeployInstanceRequest {
 		return "deploy request :" + app;
 	}
 
+	private static boolean isNumeric(String number) {
+		return number.matches("-?\\d+(\\.\\d+)?");
+	}
+
+	private boolean isEmptyRequest() {
+		return getAppName().isEmpty() || getPort() == -1;
+	}
+
+	private boolean isValidRawRequest() {
+		return app != null && app.contains(":");
+	}
 }
