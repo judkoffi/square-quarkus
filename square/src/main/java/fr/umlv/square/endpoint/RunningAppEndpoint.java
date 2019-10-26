@@ -3,6 +3,7 @@ package fr.umlv.square.endpoint;
 import java.util.ArrayList;
 import java.util.Random;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -15,11 +16,15 @@ import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
+import fr.umlv.square.service.ProcessService;
 
 @Path("/app")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+
 public class RunningAppEndpoint {
+	@Inject
+	ProcessService processService;
 
 	@POST
 	@Path("/deploy")
