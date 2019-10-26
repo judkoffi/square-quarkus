@@ -21,84 +21,87 @@ import fr.umlv.square.model.response.LogTimeResponse;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LogEndpoint {
-	@GET
-	@Path("/{time}")
-	public Response list(@PathParam("time") String time) {
-		if (!isNumeric(time))
-			return Response.status(400).entity("Invalid time value").build();
+  private final static ArrayList<LogTimeResponse> data;
+  static {
+    data = fillArrayList();
+  }
 
-		return Response.ok().entity(logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList()).toString())
-				.build();
-	}
+  private static enum FilterType {
+    ID, APPLICATION, DOCKER, UNKNOWN
+  };
 
-	@GET
-	@Path("/{time}/{filter}")
-	public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
-		if (!isNumeric(time))
-			return Response.status(400).entity("Invalid time value").build();
+  @GET
+  @Path("/{time}")
+  public Response list(@PathParam("time") String time) {
+    if (time == null || !isNumeric(time))
+      return Response.status(400).entity("Invalid time value").build();
 
-		return Response.ok().entity(logsFiltedByTime(time).filter(getPredicate(filter)).map(e -> e.toJson())
-				.collect(Collectors.toList()).toString()).build();
-	}
+    var result = logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList());
+    return Response.ok().entity(result.toString()).build();
+  }
 
-	private final static ArrayList<LogTimeResponse> data;
-	static {
-		data = fillArrayList();
-	}
+  @GET
+  @Path("/{time}/{filter}")
+  public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
+    if (time == null || filter == null || !isNumeric(time))
+      return Response.status(400).entity("Invalid time value").build();
 
-	private static enum FilterType {
-		ID, APPLICATION, DOCKER, UNKNOWN
-	};
+    var result = logsFiltedByTime(time).filter(getPredicate(filter)).map(e -> e.toJson())
+        .collect(Collectors.toList());
 
-	private static ArrayList<LogTimeResponse> fillArrayList() {
-		var arraylist = new ArrayList<LogTimeResponse>(10);
-		for (int i = 0; i < 2; i++) {
-			for (int j = 0; j < 5; j++) {
-				arraylist.add(new LogTimeResponse(j, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
-						new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
-			}
-		}
-		return arraylist;
-	}
+    return Response.ok().entity(result.toString()).build();
+  }
 
-	private static long convertMinuteToMillisecond(long minutes) {
-		return TimeUnit.MINUTES.toMillis(minutes);
-	}
+  private static ArrayList<LogTimeResponse> fillArrayList() {
+    var arraylist = new ArrayList<LogTimeResponse>(10);
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 5; j++) {
+        arraylist
+            .add(new LogTimeResponse(j, "app:" + i, 80 + i, "80" + i, "docker_80-" + i, "log_" + i,
+                new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
+      }
+    }
+    return arraylist;
+  }
 
-	private static Stream<LogTimeResponse> logsFiltedByTime(String timestamp) {
-		var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
-		var filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
-		return data.stream().filter((elt) -> elt.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
+  private static long convertMinuteToMillisecond(long minutes) {
+    return TimeUnit.MINUTES.toMillis(minutes);
+  }
 
-	}
+  private static Stream<LogTimeResponse> logsFiltedByTime(String timestamp) {
+    var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
+    var filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
+    return data.stream()
+        .filter((log) -> log.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
 
-	private static Predicate<LogTimeResponse> getPredicate(String filter) {
-		var filterType = findFilterType(filter);
-		switch (filterType)
-		{
-		case ID:
-			return (e) -> e.getId() == Integer.parseInt(filter);
-		case APPLICATION:
-			return (e) -> e.getAppName().equals(filter);
-		case DOCKER:
-			return (e) -> e.getDockerInstance().equals(filter);
-		default:
-			return (e) -> false;
-		}
-	}
+  }
 
-	private static boolean isNumeric(String filter) {
-		return filter.matches("-?\\d+(\\.\\d+)?"); // match a number with optional '-' and decimal.
-	}
+  private static Predicate<LogTimeResponse> getPredicate(String filter) {
+    var filterType = findFilterType(filter);
+    switch (filterType) {
+      case ID:
+        return (e) -> e.getId() == Integer.parseInt(filter);
+      case APPLICATION:
+        return (e) -> e.getAppName().equals(filter);
+      case DOCKER:
+        return (e) -> e.getDockerInstance().equals(filter);
+      default:
+        return (e) -> false;
+    }
+  }
 
-	private static FilterType findFilterType(String filter) {
-		if (filter.contains(":"))
-			return FilterType.APPLICATION;
-		else if (filter.contains("-"))
-			return FilterType.DOCKER;
-		else if (isNumeric(filter))
-			return FilterType.ID;
-		else
-			return FilterType.UNKNOWN;
-	}
+  private static boolean isNumeric(String filter) {
+    return filter.matches("-?\\d+(\\.\\d+)?"); // match a number with optional '-' and decimal.
+  }
+
+  private static FilterType findFilterType(String filter) {
+    if (filter.contains(":"))
+      return FilterType.APPLICATION;
+    else if (filter.contains("-"))
+      return FilterType.DOCKER;
+    else if (isNumeric(filter))
+      return FilterType.ID;
+    else
+      return FilterType.UNKNOWN;
+  }
 }

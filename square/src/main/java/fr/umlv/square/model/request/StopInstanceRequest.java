@@ -1,27 +1,29 @@
 package fr.umlv.square.model.request;
 
 import java.util.Objects;
+import javax.validation.constraints.Digits;
 
 public class StopInstanceRequest {
-	private int id;
 
-	public StopInstanceRequest() {
-	}
+  @Digits(fraction = 0, integer = Integer.MAX_VALUE)
+  private int id;
 
-	public StopInstanceRequest(int id) {
-		this.id = Objects.requireNonNull(id);
-	}
+  public StopInstanceRequest() {}
 
-	public int getId() {
-		return id;
-	}
+  public StopInstanceRequest(int id) {
+    this.id = Objects.requireNonNull(id);
+  }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+  public int getId() {
+    return id;
+  }
 
-	@Override
-	public String toString() {
-		return "stop request :" + id;
-	}
+  public void setId(int id) {
+    this.id = id;
+  }
+
+  @Override
+  public String toString() {
+    return "stop request :" + id;
+  }
 }
