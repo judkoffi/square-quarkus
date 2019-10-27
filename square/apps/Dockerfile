@@ -1,4 +1,4 @@
-FROM fabric8/java-alpine-openjdk8-jre
+FROM registry.access.redhat.com/ubi8/ubi-minimal
 WORKDIR /app
 COPY ./helloapp.jar /app/app.jar
 RUN chmod 775 /app
