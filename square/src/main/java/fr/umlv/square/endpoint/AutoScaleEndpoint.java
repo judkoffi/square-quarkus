@@ -21,6 +21,11 @@ public class AutoScaleEndpoint {
 
   @POST
   @Path("/update")
+  /**
+   * Road to update the number of instances of an app
+   * @param request the JSON request
+   * @return a Response in JSON
+   */
   public Response update(Map<String, Integer> request) {
     var jsonBuilder = JsonbBuilder.create();
     var map = request.entrySet().stream()
@@ -30,6 +35,10 @@ public class AutoScaleEndpoint {
 
   @GET
   @Path("/status")
+  /**
+   * Road to know what are the actions that the auto scale has to do
+   * @return a Response in JSON
+   */
   public Response status() {
     var jsonBuilder = JsonbBuilder.create();
     var hashmap = new HashMap<String, String>();
@@ -40,6 +49,10 @@ public class AutoScaleEndpoint {
 
   @GET
   @Path("/stop")
+  /**
+   * Road to stop auto scale
+   * @return a Response JSON which give the number of instance handled by auto scale
+   */
   public Response stop() {
     var jsonBuilder = JsonbBuilder.create();
     var hashmap = new HashMap<String, Integer>();

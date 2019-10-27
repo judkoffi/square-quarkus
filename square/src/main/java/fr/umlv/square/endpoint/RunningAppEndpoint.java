@@ -28,6 +28,11 @@ public class RunningAppEndpoint {
 
   @POST
   @Path("/deploy")
+  /**
+   * Road to start an app
+   * @param request : a JSON which defines the name of the app and its port number
+   * @return : a Response in JSON which give information about the app deployed
+   */
   public Response deploy(DeployInstanceRequest request) {
     var violations = validator.validate(request);
 
@@ -36,7 +41,7 @@ public class RunningAppEndpoint {
     }
 
     var servicePort = "servicePort";
-    var dockerInstance = "docerInstance";
+    var dockerInstance = "dockerInstance";
 
     var response =
         new DeployResponse(1, request.getAppName(), request.getPort(), servicePort, dockerInstance);
@@ -46,9 +51,13 @@ public class RunningAppEndpoint {
 
   @GET
   @Path("/list")
+  /**
+   * Road to list all the instances of the docker container
+   * @return : a Resonse in JSON with all the informations of the app listed
+   */
   public Response list() {
     var servicePort = "servicePort_";
-    var dockerInstance = "docerInstance_";
+    var dockerInstance = "dockerInstance_";
 
     var list = new ArrayList<String>();
 
@@ -62,6 +71,11 @@ public class RunningAppEndpoint {
 
   @POST
   @Path("/stop")
+  /**
+   * Road to stop an app
+   * @param request : a JSON which give the id of the app to stop
+   * @return : a Response in JSON which give the information of the app at the moment of its stop 
+   */
   public Response stop(StopInstanceRequest request) {
     var violations = validator.validate(request);
 
@@ -70,7 +84,7 @@ public class RunningAppEndpoint {
     }
 
     var servicePort = "servicePort_";
-    var dockerInstance = "docerInstance_";
+    var dockerInstance = "dockerInstance_";
 
     var result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort,
         dockerInstance, "1m50");
