@@ -3,8 +3,6 @@ package fr.umlv.square;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-import javax.json.bind.JsonbBuilder;
-
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,7 +13,8 @@ public class RunningAppEndpointTest {
 
 	@Test
 	public void testDeployEndpoint() {
-		var expected = "{\"id\": \"1\", \"app\": \"totoapp\", \"port\": \"5000\", \"service-docker\":\"servicePort\", \"docker-instance\":\"dockerInstance\"}";
+		var expected = "{\"id\": 1, \"app\": \"totoapp\", \"port\": 5000, \"service-docker\": 10000, \"docker-instance\":\"totoapp-12\"}";
+
 		given().contentType(ContentType.JSON).body("{\"app\": \"totoapp:5000\"}").when().post("/app/deploy").then()
 				.statusCode(200).assertThat().body(is(expected));
 
