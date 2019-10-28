@@ -17,6 +17,7 @@ import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
+import fr.umlv.square.service.DockerService;
 
 @Path("/app")
 @Produces(MediaType.APPLICATION_JSON)
@@ -25,6 +26,9 @@ public class RunningAppEndpoint {
 
 	@Inject
 	Validator validator;
+
+	@Inject
+	DockerService dockerService;
 
 	@POST
 	@Path("/deploy")
@@ -40,6 +44,10 @@ public class RunningAppEndpoint {
 		if (!violations.isEmpty()) {
 			return Response.status(400).entity("Invalid post body").build();
 		}
+
+		var shellResult = dockerService.buildImage(request.getAppName(), request.getPort());
+		
+		System.out.println(shellResult);
 
 		var response = new DeployResponse(1, request.getAppName(), request.getPort(), request.getPort() * 2,
 				request.getAppName() + "-12");

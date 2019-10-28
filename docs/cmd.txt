@@ -1,21 +1,1 @@
-Sending build context to Docker daemon  8.891MB
-Step 1/6 : FROM registry.access.redhat.com/ubi8/ubi-minimal
- ---> 8c980b20fbaa
-Step 2/6 : WORKDIR /app
- ---> Using cache
- ---> 91f46803c6bb
-Step 3/6 : COPY helloapp.jar /app/app.jar
- ---> Using cache
- ---> 8cd67e251b20
-Step 4/6 : RUN chmod 775 /app
- ---> Using cache
- ---> bbf1cb169960
-Step 5/6 : EXPOSE 8080
- ---> Using cache
- ---> 77c4a950db10
-Step 6/6 : CMD java -jar app.jar
- ---> Using cache
- ---> 43c841ead675
-Successfully built 43c841ead675
-Successfully tagged helloapp:latest
-docker run -p 8080:8080 helloapp
+docker build -f docker-images/Dockerfile.template -t helloapp apps/docker run -p 8080:8080 helloapp
