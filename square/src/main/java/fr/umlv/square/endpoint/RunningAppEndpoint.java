@@ -23,73 +23,75 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 @Consumes(MediaType.APPLICATION_JSON)
 public class RunningAppEndpoint {
 
-  @Inject
-  Validator validator;
+	@Inject
+	Validator validator;
 
-  @POST
-  @Path("/deploy")
-  /**
-   * Road to start an app
-   * @param request : a JSON which defines the name of the app and its port number
-   * @return : a Response in JSON which give information about the app deployed
-   */
-  public Response deploy(DeployInstanceRequest request) {
-    var violations = validator.validate(request);
+	@POST
+	@Path("/deploy")
+	/**
+	 * Road to start an app
+	 * 
+	 * @param request : a JSON which defines the name of the app and its port number
+	 * @return : a Response in JSON which give information about the app deployed
+	 */
+	public Response deploy(DeployInstanceRequest request) {
+		var violations = validator.validate(request);
 
-    if (!violations.isEmpty()) {
-      return Response.status(400, "Invalid post body").build();
-    }
+		if (!violations.isEmpty()) {
+			return Response.status(400).entity("Invalid post body").build();
+		}
 
-    var servicePort = "servicePort";
-    var dockerInstance = "dockerInstance";
+		var servicePort = "servicePort";
+		var dockerInstance = "dockerInstance";
 
-    var response =
-        new DeployResponse(1, request.getAppName(), request.getPort(), servicePort, dockerInstance);
+		var response = new DeployResponse(1, request.getAppName(), request.getPort(), servicePort, dockerInstance);
 
-    return Response.ok().entity(response.toJson()).build();
-  }
+		return Response.ok().entity(response.toJson()).build();
+	}
 
-  @GET
-  @Path("/list")
-  /**
-   * Road to list all the instances of the docker container
-   * @return : a Resonse in JSON with all the informations of the app listed
-   */
-  public Response list() {
-    var servicePort = "servicePort_";
-    var dockerInstance = "dockerInstance_";
+	@GET
+	@Path("/list")
+	/**
+	 * Road to list all the instances of the docker container
+	 * 
+	 * @return : a Resonse in JSON with all the informations of the app listed
+	 */
+	public Response list() {
+		var servicePort = "servicePort_";
+		var dockerInstance = "dockerInstance_";
 
-    var list = new ArrayList<String>();
+		var list = new ArrayList<String>();
 
-    for (int i = 0; i < 5; i++) {
-      list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i,
-          servicePort + i, dockerInstance + i, "1m50").toJson());
-    }
+		for (int i = 0; i < 5; i++) {
+			list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, servicePort + i,
+					dockerInstance + i, "1m50").toJson());
+		}
 
-    return Response.ok().entity(list.toString()).build();
-  }
+		return Response.ok().entity(list.toString()).build();
+	}
 
-  @POST
-  @Path("/stop")
-  /**
-   * Road to stop an app
-   * @param request : a JSON which give the id of the app to stop
-   * @return : a Response in JSON which give the information of the app at the moment of its stop 
-   */
-  public Response stop(StopInstanceRequest request) {
-    var violations = validator.validate(request);
+	@POST
+	@Path("/stop")
+	/**
+	 * Road to stop an app
+	 * 
+	 * @param request : a JSON which give the id of the app to stop
+	 * @return : a Response in JSON which give the information of the app at the
+	 *         moment of its stop
+	 */
+	public Response stop(StopInstanceRequest request) {
+		var violations = validator.validate(request);
 
-    if (!violations.isEmpty()) {
-      return Response.status(400, "Invalid post body").build();
-    }
+		if (!violations.isEmpty()) {
+			return Response.status(400, "Invalid post body").build();
+		}
 
-    var servicePort = "servicePort_";
-    var dockerInstance = "dockerInstance_";
+		var servicePort = "servicePort_";
+		var dockerInstance = "dockerInstance_";
 
-    var result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort,
-        dockerInstance, "1m50");
+		var result = new RunningInstanceInfo(request.getId(), "appName_", 8000, servicePort, dockerInstance, "1m50");
 
-    return Response.ok().entity(result.toJson()).build();
-  }
+		return Response.ok().entity(result.toJson()).build();
+	}
 
 }
