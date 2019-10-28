@@ -18,3 +18,4 @@ Step 6/6 : CMD java -jar app.jar
  ---> 43c841ead675
 Successfully built 43c841ead675
 Successfully tagged helloapp:latest
+docker run -p 8080:8080 helloapp
