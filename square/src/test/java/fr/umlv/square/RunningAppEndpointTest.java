@@ -51,4 +51,23 @@ public class RunningAppEndpointTest {
 		given().contentType(ContentType.JSON).body("{\"dadad\": \"totoappaasa:4000\"}").when().post("/app/deploy")
 				.then().statusCode(400).body(is("Invalid post body"));
 	}
+
+	@Test
+	public void testAppStopEndpoint() {
+		var expected = "{\"id\": 2, \"app\": \"appName_\", \"port\": 8000, \"service-docker\": 8000, \"docker-instance\":\"appName_\", \"elapsed-time\":\"1m50\"}";
+		given().contentType(ContentType.JSON).body("{\"id\": \"2\"}").when().post("/app/stop").then().statusCode(200)
+				.body(is(expected));
+	}
+
+	@Test
+	public void testBadRequestStop() {
+		given().contentType(ContentType.JSON).body("{\"dadad\": \"totoappaasa\"}").when().post("/app/stop").then()
+				.statusCode(400).body(is("Invalid post body"));
+	}
+
+	@Test
+	public void testBadRequestStop2() {
+		given().contentType(ContentType.JSON).body("{\"isqx\": 22}").when().post("/app/stop").then().statusCode(400)
+				.body(is("Invalid post body"));
+	}
 }
