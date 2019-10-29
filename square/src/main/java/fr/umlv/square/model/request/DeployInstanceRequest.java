@@ -8,7 +8,7 @@ public class DeployInstanceRequest {
 
 	@NotNull
 	@NotBlank
-	@Pattern(regexp = "[^\\:]+:[0-9]+")
+	@Pattern(regexp = "[^\\:]+:[0-9]+") // app must match with regexp
 	private String app;
 
 	public DeployInstanceRequest() {

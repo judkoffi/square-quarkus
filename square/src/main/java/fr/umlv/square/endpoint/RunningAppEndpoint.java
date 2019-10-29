@@ -25,7 +25,7 @@ import fr.umlv.square.service.DockerService;
 public class RunningAppEndpoint {
 
 	@Inject
-	Validator validator;
+	Validator validator; 
 
 	@Inject
 	DockerService dockerService;
@@ -60,7 +60,7 @@ public class RunningAppEndpoint {
 	/**
 	 * Road to list all the instances of the docker container
 	 * 
-	 * @return : a Resonse in JSON with all the informations of the app listed
+	 * @return : a Response in JSON with all the informations of the app listed
 	 */
 	public Response list() {
 

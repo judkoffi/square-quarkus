@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 
 import javax.enterprise.context.ApplicationScoped;
 
-@ApplicationScoped
+@ApplicationScoped	// One DockerService instance for the whole application
 public class DockerService {
 
 	private final static String DOCKERFILE_TEMPLATE;
@@ -65,14 +65,14 @@ public class DockerService {
 
 		try {
 
+			
+			var outputStream = processBuilder.command("/bin/bash", "-c", createDockerfileCommand).start().getInputStream();
 
-			///processBuilder.command("/bin/bash", "-c", createDockerfileCommand).start().getInputStream();
+			outputStream = processBuilder.command("/bin/bash", "-c", builImageCommand).start().getInputStream();
 
-			var outputStream = processBuilder.command("/bin/bash", "-c", builImageCommand).start().getInputStream();
+			//outputStream = processBuilder.command("/bin/bash", "-c", runDockerCommand).start().getInputStream();
 
-			outputStream = processBuilder.command("/bin/bash", "-c", runDockerCommand).start().getInputStream();
-
-			outputStream = processBuilder.command("/bin/bash", "-c", dockerPsCommand).start().getInputStream();
+			//outputStream = processBuilder.command("/bin/bash", "-c", dockerPsCommand).start().getInputStream();
 
 			return getOutput(outputStream);
 		} catch (IOException e) {
