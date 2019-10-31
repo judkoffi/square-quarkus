@@ -1,23 +1,40 @@
 package fr.umlv.square.client;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 
 public class SquareClient {
-	private ProcessBuilder processBuider;
-
-	private final String squareHost = "172.17.0.1";
-	private final int squarePort = 4000;
+	private final String squareHost = "http://192.168.43.184";
+	private final int squarePort = 5050;
 
 	public SquareClient() {
 
 	}
 
-	public void sendLog() {
-		var url = squareHost + ":" + squarePort;
-		var httpClient = HttpClient.newHttpClient();
-		var request = HttpRequest.newBuilder().uri(URI.create(url)).build();
+	public void sendLog() throws IOException, InterruptedException {
+		var uri = URI.create(squareHost + ":" + squarePort + "/kawai/send-log");
+
+		var body = "{\"HoneyBee\": \"COUCOU\"}";
+
+		var client = HttpClient.newHttpClient();
+		var request = HttpRequest
+				.newBuilder()
+				.uri(uri)
+				.header("Content-Type", "application/json")
+				.POST(HttpRequest.BodyPublishers.ofString(body))
+				.build();
+
+		var response = client.send(request, BodyHandlers.ofString());
+		 System.out.println(response.statusCode());
+		   System.out.println(response.body());  
+	}
+
+	public static void main(String[] args) throws IOException, InterruptedException {
+		var squareClient = new SquareClient();
+		squareClient.sendLog();
 	}
 
 }
