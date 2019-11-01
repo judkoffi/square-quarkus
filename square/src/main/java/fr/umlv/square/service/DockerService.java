@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 
 import javax.enterprise.context.ApplicationScoped;
 
-@ApplicationScoped	// One DockerService instance for the whole application
+@ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
 
 	private final static String DOCKERFILE_TEMPLATE;
@@ -51,8 +51,6 @@ public class DockerService {
 
 		processBuilder.directory(new File("../"));
 
-		// processBuilder.command("/bin/bash", "-c", "pwd");
-
 		var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " " + APPS_DIRECTORY;
 
 		var listImagesCommand = "docker images";
@@ -65,14 +63,18 @@ public class DockerService {
 
 		try {
 
-			
-			var outputStream = processBuilder.command("/bin/bash", "-c", createDockerfileCommand).start().getInputStream();
+			var outputStream = processBuilder.command("bash", "-c", "pwd").start().getInputStream();
+			// var outputStream = processBuilder.command("/bin/bash", "-c",
+			// createDockerfileCommand).start().getInputStream();
 
-			outputStream = processBuilder.command("/bin/bash", "-c", builImageCommand).start().getInputStream();
+			// outputStream = processBuilder.command("/bin/bash", "-c",
+			// builImageCommand).start().getInputStream();
 
-			//outputStream = processBuilder.command("/bin/bash", "-c", runDockerCommand).start().getInputStream();
+			// outputStream = processBuilder.command("/bin/bash", "-c",
+			// runDockerCommand).start().getInputStream();
 
-			//outputStream = processBuilder.command("/bin/bash", "-c", dockerPsCommand).start().getInputStream();
+			// outputStream = processBuilder.command("/bin/bash", "-c",
+			// dockerPsCommand).start().getInputStream();
 
 			return getOutput(outputStream);
 		} catch (IOException e) {
