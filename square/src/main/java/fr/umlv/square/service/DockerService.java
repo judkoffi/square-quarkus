@@ -106,6 +106,7 @@ public class DockerService {
       var isImageRan = runImage(appName, port, defaultPort);
       if (!isImageRan)
         return false;
+
     } catch (AssertionError e) {
       return false;
     }

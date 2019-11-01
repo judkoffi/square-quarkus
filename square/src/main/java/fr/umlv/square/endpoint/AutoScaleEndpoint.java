@@ -51,6 +51,7 @@ public class AutoScaleEndpoint {
   @Path("/stop")
   /**
    * Road to stop auto scale
+   * 
    * @return a Response JSON which give the number of instance handled by auto scale
    */
   public Response stop() {
