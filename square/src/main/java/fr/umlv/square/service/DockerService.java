@@ -5,81 +5,110 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
+  private final static String DOCKERFILE_TEMPLATE; // DOckerfile use as template for all images
+  private final static String DOCKERFILES_DIRECTORY;
+  private final static String APPS_DIRECTORY;
+  private final ProcessBuilder processBuilder;
 
-	private final static String DOCKERFILE_TEMPLATE;
+  static {
+    DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
+        + "COPY {{1}}.jar /app/app.jar\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n"
+        + "CMD java -jar app.jar";
+    DOCKERFILES_DIRECTORY = "docker-images/";
+    APPS_DIRECTORY = "apps/";
+  }
 
-	private final static String DOCKER_IMAGE_DIRECTORY = "docker-images/";
+  public DockerService() {
+    // default pwd = square/target
+    this.processBuilder = new ProcessBuilder().directory(new File("../../"));
+  }
 
-	private final static String APPS_DIRECTORY = "apps/";
+  /* Helper method use to display output after run command on terminal */
+  private static String getOutputOfCommand(InputStream outputStream) throws IOException {
+    var reader = new BufferedReader(new InputStreamReader(outputStream));
+    var builder = new StringBuilder();
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      builder.append(line);
+      builder.append(System.getProperty("line.separator"));
+    }
+    return builder.toString();
+  }
 
-	static {
-		DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
-				+ "COPY {{1}}.jar /app/app.jar\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n" + "CMD java -jar app.jar";
-	}
+  private String createDockerFile(String appName, int port) {
+    var imageFile = DOCKERFILE_TEMPLATE.replace("{{1}}", appName).replace("{{2}}", "" + port);
+    var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
+    var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
+    try {
+      var exitValue =
+          processBuilder.command("bash", "-c", createDockerfileCommand).start().waitFor();
+      return (exitValue == 0) ? imagePath : null;
+    } catch (IOException | InterruptedException e) {
+      throw new AssertionError();
+    }
+  }
 
-	private final ProcessBuilder processBuilder;
+  private boolean buildImage(String imagePath, String appName) {
+    var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " " + APPS_DIRECTORY;
+    try {
+      var exitValue = processBuilder.command("bash", "-c", builImageCommand).start().waitFor();
+      return (exitValue == 0);
+    } catch (IOException | InterruptedException e) {
+      throw new AssertionError();
+    }
+  }
 
-	public DockerService() {
-		this.processBuilder = new ProcessBuilder();
-	}
+  private boolean runImage(String imageName, int port, int defaultPort) {
+    var customName = imageName + "_" + port;
+    var runDockerCommand =
+        "docker run -p " + port + ":" + defaultPort + " --name " + customName + " " + imageName;
 
-	private String getOutput(InputStream outpuStream) throws IOException {
-		var reader = new BufferedReader(new InputStreamReader(outpuStream));
-		var builder = new StringBuilder();
-		String line = null;
-		while ((line = reader.readLine()) != null) {
-			builder.append(line);
-			builder.append(System.getProperty("line.separator"));
-		}
+    try {
+      var timeout = 1000; // Time to wait to be sure that docker is running
+      processBuilder.command("bash", "-c", runDockerCommand).start().waitFor(timeout,
+          TimeUnit.MILLISECONDS);
 
-		return builder.toString();
+      // Make docker ps and check if image is running
+      var process = processBuilder.command("bash", "-c", "docker ps").start();
 
-	}
+      var outputStream = process.getInputStream();
+      var consoleOutput = getOutputOfCommand(outputStream);
+      System.out.println(consoleOutput);
+      return consoleOutput.contains(customName);
+    } catch (IOException | InterruptedException e) {
+      throw new AssertionError();
+    }
+  }
 
-	public String buildImage(String appName, int port) {
+  /**
+   * @param appName: name of application to be deploy in docker container
+   * @param port: port of application redirected form docker container to current system
+   * @param defaultPort: port of application to be deploy in docker container
+   * 
+   * @return true in container was set up or false if not
+   */
+  public boolean runContainer(String appName, int port, int defaultPort) {
+    try {
+      var dockerImagePath = createDockerFile(appName, port);
+      if (dockerImagePath == null)
+        return false;
 
-		var imageFile = DOCKERFILE_TEMPLATE.replace("{{1}}", appName).replace("{{2}}", "" + port);
+      var isSuccededImageBuild = buildImage(dockerImagePath, appName);
+      if (!isSuccededImageBuild)
+        return false;
 
-		var imagePath = DOCKER_IMAGE_DIRECTORY + "Dockerfile." + appName;
-
-		var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
-
-		processBuilder.directory(new File("../"));
-
-		var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " " + APPS_DIRECTORY;
-
-		var listImagesCommand = "docker images";
-
-		var runDockerCommand = "docker run -p " + port + ":8080 " + appName;
-
-		System.out.println(runDockerCommand);
-
-		var dockerPsCommand = "docker ps";
-
-		try {
-
-			var outputStream = processBuilder.command("bash", "-c", "pwd").start().getInputStream();
-			// var outputStream = processBuilder.command("/bin/bash", "-c",
-			// createDockerfileCommand).start().getInputStream();
-
-			// outputStream = processBuilder.command("/bin/bash", "-c",
-			// builImageCommand).start().getInputStream();
-
-			// outputStream = processBuilder.command("/bin/bash", "-c",
-			// runDockerCommand).start().getInputStream();
-
-			// outputStream = processBuilder.command("/bin/bash", "-c",
-			// dockerPsCommand).start().getInputStream();
-
-			return getOutput(outputStream);
-		} catch (IOException e) {
-			return e.getMessage();
-		}
-	}
-
+      var isImageRan = runImage(appName, port, defaultPort);
+      if (!isImageRan)
+        return false;
+    } catch (AssertionError e) {
+      return false;
+    }
+    return true;
+  }
 }

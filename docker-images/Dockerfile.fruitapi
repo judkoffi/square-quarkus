@@ -1,6 +1,6 @@
 FROM hirokimatsumoto/alpine-openjdk-11
 WORKDIR /app
-COPY ma_petite_application.jar /app/app.jar
+COPY fruitapi.jar /app/app.jar
 RUN chmod 775 /app
-EXPOSE 410
+EXPOSE 8080
 CMD java -jar app.jar

@@ -24,75 +24,76 @@ import fr.umlv.square.service.DockerService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class RunningAppEndpoint {
 
-	@Inject
-	Validator validator; 
+  @Inject
+  Validator validator;
 
-	@Inject
-	DockerService dockerService;
+  @Inject
+  DockerService dockerService;
 
-	@POST
-	@Path("/deploy")
-	/**
-	 * Road to start an app
-	 * 
-	 * @param request : a JSON which defines the name of the app and its port number
-	 * @return : a Response in JSON which give information about the app deployed
-	 */
-	public Response deploy(DeployInstanceRequest request) {
-		var violations = validator.validate(request);
+  @POST
+  @Path("/deploy")
+  /**
+   * Road to start an app
+   * 
+   * @param request : a JSON which defines the name of the app and its port number
+   * @return : a Response in JSON which give information about the app deployed
+   */
+  public Response deploy(DeployInstanceRequest request) {
+    var violations = validator.validate(request);
 
-		if (!violations.isEmpty()) {
-			return Response.status(400).entity("Invalid post body").build();
-		}
+    if (!violations.isEmpty()) {
+      return Response.status(400).entity("Invalid post body").build();
+    }
 
-		var shellResult = dockerService.buildImage(request.getAppName(), request.getPort());
-		
-		System.out.println(shellResult);
+    var shellResult =
+        dockerService.runContainer(request.getAppName(), request.getPort(), request.getPort());
 
-		var response = new DeployResponse(1, request.getAppName(), request.getPort(), request.getPort() * 2,
-				request.getAppName() + "-12");
+    System.out.println(shellResult);
 
-		return Response.ok().entity(response.toJson()).build();
-	}
+    var response = new DeployResponse(1, request.getAppName(), request.getPort(),
+        request.getPort() * 2, request.getAppName() + "-12");
 
-	@GET
-	@Path("/list")
-	/**
-	 * Road to list all the instances of the docker container
-	 * 
-	 * @return : a Response in JSON with all the informations of the app listed
-	 */
-	public Response list() {
+    return Response.ok().entity(response.toJson()).build();
+  }
 
-		var list = new ArrayList<String>();
+  @GET
+  @Path("/list")
+  /**
+   * Road to list all the instances of the docker container
+   * 
+   * @return : a Response in JSON with all the informations of the app listed
+   */
+  public Response list() {
 
-		for (int i = 0; i < 5; i++) {
-			list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, 8000 + i, "appName_" + i,
-					"1m50").toJson());
-		}
+    var list = new ArrayList<String>();
 
-		return Response.ok().entity(list.toString()).build();
-	}
+    for (int i = 0; i < 5; i++) {
+      list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, 8000 + i,
+          "appName_" + i, "1m50").toJson());
+    }
 
-	@POST
-	@Path("/stop")
-	/**
-	 * Road to stop an app
-	 * 
-	 * @param request : a JSON which give the id of the app to stop
-	 * @return : a Response in JSON which give the information of the app at the
-	 *         moment of its stop
-	 */
-	public Response stop(StopInstanceRequest request) {
-		var violations = validator.validate(request);
+    return Response.ok().entity(list.toString()).build();
+  }
 
-		if (!violations.isEmpty()) {
-			return Response.status(400).entity("Invalid post body").build();
-		}
+  @POST
+  @Path("/stop")
+  /**
+   * Road to stop an app
+   * 
+   * @param request : a JSON which give the id of the app to stop
+   * @return : a Response in JSON which give the information of the app at the moment of its stop
+   */
+  public Response stop(StopInstanceRequest request) {
+    var violations = validator.validate(request);
 
-		var result = new RunningInstanceInfo(request.getId(), "appName_", 8000, 8000, "appName_", "1m50");
+    if (!violations.isEmpty()) {
+      return Response.status(400).entity("Invalid post body").build();
+    }
 
-		return Response.ok().entity(result.toJson()).build();
-	}
+    var result =
+        new RunningInstanceInfo(request.getId(), "appName_", 8000, 8000, "appName_", "1m50");
+
+    return Response.ok().entity(result.toJson()).build();
+  }
 
 }
