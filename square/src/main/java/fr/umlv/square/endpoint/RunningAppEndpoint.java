@@ -2,7 +2,6 @@ package fr.umlv.square.endpoint;
 
 import java.util.ArrayList;
 import java.util.Random;
-
 import javax.inject.Inject;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -12,10 +11,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
-import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
 import fr.umlv.square.service.DockerService;
 
@@ -45,15 +42,14 @@ public class RunningAppEndpoint {
       return Response.status(400).entity("Invalid post body").build();
     }
 
-    var shellResult =
+    var deployResponse =
         dockerService.runContainer(request.getAppName(), request.getPort(), request.getPort());
 
-    System.out.println(shellResult);
+    var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "";
 
-    var response = new DeployResponse(1, request.getAppName(), request.getPort(),
-        request.getPort() * 2, request.getAppName() + "-12");
+    System.out.println(deployResponse);
 
-    return Response.ok().entity(response.toJson()).build();
+    return Response.ok().entity(entityBody).build();
   }
 
   @GET
@@ -68,8 +64,9 @@ public class RunningAppEndpoint {
     var list = new ArrayList<String>();
 
     for (int i = 0; i < 5; i++) {
-      list.add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, 8000 + i,
-          "appName_" + i, "1m50").toJson());
+      list
+        .add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, 8000 + i,
+            "appName_" + i, "1m50").toJson());
     }
 
     return Response.ok().entity(list.toString()).build();

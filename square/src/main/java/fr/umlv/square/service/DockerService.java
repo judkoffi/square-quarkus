@@ -5,9 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import javax.enterprise.context.ApplicationScoped;
+import fr.umlv.square.model.response.DeployResponse;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
@@ -71,10 +73,12 @@ public class DockerService {
 
     try {
       var timeout = 1000; // Time to wait to be sure that docker is running
-      processBuilder.command("bash", "-c", runDockerCommand).start().waitFor(timeout,
-          TimeUnit.MILLISECONDS);
+      processBuilder
+        .command("bash", "-c", runDockerCommand)
+        .start()
+        .waitFor(timeout, TimeUnit.MILLISECONDS);
 
-      // Make docker ps and check if image is running
+      // run docker ps and check if image is running
       var process = processBuilder.command("bash", "-c", "docker ps").start();
 
       var outputStream = process.getInputStream();
@@ -91,25 +95,32 @@ public class DockerService {
    * @param port: port of application redirected form docker container to current system
    * @param defaultPort: port of application to be deploy in docker container
    * 
-   * @return true in container was set up or false if not
+   * 
    */
-  public boolean runContainer(String appName, int port, int defaultPort) {
+  public Optional<DeployResponse> runContainer(String appName, int port, int defaultPort) {
     try {
       var dockerImagePath = createDockerFile(appName, port);
       if (dockerImagePath == null)
-        return false;
+        return Optional.empty();
 
       var isSuccededImageBuild = buildImage(dockerImagePath, appName);
       if (!isSuccededImageBuild)
-        return false;
+        return Optional.empty();
 
       var isImageRan = runImage(appName, port, defaultPort);
       if (!isImageRan)
-        return false;
+        return Optional.empty();
 
     } catch (AssertionError e) {
-      return false;
+      return Optional.empty();
     }
-    return true;
+
+    int id = 1 + new Random().nextInt(Integer.MAX_VALUE);
+    int servicePort = 1 + new Random().nextInt(Integer.MAX_VALUE);
+
+    var dockerInstance = "sample";
+
+    var response = new DeployResponse(id, appName, defaultPort, servicePort, dockerInstance);
+    return Optional.of(response);
   }
 }
