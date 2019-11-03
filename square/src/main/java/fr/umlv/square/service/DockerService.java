@@ -84,8 +84,6 @@ public class DockerService {
   private int generatePort(int... notAvailablePort) {
     var port = MIN_PORT_NUMBER + new Random().nextInt(MAX_PORT_NUMBER);
 
-
-
     for (var i = 0; i < notAvailablePort.length; i++) {
       if (port == notAvailablePort[i])
         return generatePort(notAvailablePort);
@@ -96,52 +94,45 @@ public class DockerService {
       .stream()
       .anyMatch((entry) -> entry.getValue().squareId == port);
 
-
     return !isUsedPort ? port : generatePort(notAvailablePort);
   }
 
-  private Optional<ImageInfo> runImage(String imageName, int appPort, int externalPort) {
+  private int runImage(String imageName, int appPort, int externalPort) {
     var id = generateId();
     var uniqueName = imageName + "-" + id;
 
-    var runDockerCommand =
+    var command =
         "docker run -p " + externalPort + ":" + appPort + " --name " + uniqueName + " " + imageName;
 
-
-    System.out.println("Run command " + runDockerCommand);
-
     try {
-      var runProcess = processBuilder.command("bash", "-c", runDockerCommand).start().isAlive();
-      // .waitFor(3000, TimeUnit.MILLISECONDS);
-
-
-      if (!runProcess)
-        return Optional.empty();
-
-      // run docker ps and check if image is running
-      var processOutput =
-          processBuilder.command("bash", "-c", "docker ps").start().getInputStream();
-
-      var consoleOutput = getOutputOfCommand(processOutput);
-      if (!consoleOutput.contains(uniqueName))
-        return Optional.empty();
-
-      return BuildImageInfoFromString(consoleOutput, uniqueName, id);
-
+      var runProcess = processBuilder.command("bash", "-c", command).start().isAlive();
+      return runProcess ? id : -1;
     } catch (IOException e) {
       throw new AssertionError();
     }
   }
 
-  private Optional<ImageInfo> BuildImageInfoFromString(String consoleOutput, String name, int id) {
+  private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId) {
+    var psCommand = "docker ps";
+    try {
+      var output = new ProcessBuilder().command("bash", "-c", psCommand).start().getInputStream();
+      var consoleOutput = getOutputOfCommand(output);
+
+      if (!consoleOutput.contains(runningName))
+        return Optional.empty();
+
+
+      return buildImageInfoFromString(consoleOutput, runningName, runningId);
+    } catch (IOException e) {
+      return Optional.empty();
+    }
+  }
+
+
+  private Optional<ImageInfo> buildImageInfoFromString(String consoleOutput, String name, int id) {
     var lines = consoleOutput.split("\n");
-
-    var matchedLine =
-        Arrays.stream(lines).skip(1).filter((p) -> p.contains(name)).findFirst().get();
-
-    var tokens = matchedLine.split("\\s+");
-
-    System.out.println(Arrays.deepToString(tokens));
+    var line = Arrays.stream(lines).skip(1).filter((p) -> p.contains(name)).findFirst().get();
+    var tokens = line.split("\\s+");
     return Optional.of(new ImageInfo(name, tokens[0], tokens[13], id));
   }
 
@@ -155,30 +146,32 @@ public class DockerService {
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
       var dockerImagePath = createDockerFile(appName, appPort);
-      if (dockerImagePath == null) {
-        System.out.println("Optinioal empty from createDOckerFile");
+      if (dockerImagePath == null)
         return Optional.empty();
-      }
 
       var isSuccededImageBuild = buildImage(dockerImagePath, appName);
-      if (!isSuccededImageBuild) {
-        System.out.println("Optinioal empty from builImage");
+      if (!isSuccededImageBuild)
         return Optional.empty();
-      }
-
 
       var externalPort = generatePort(appPort);
-      var ranImage = runImage(appName, appPort, externalPort);
-      if (ranImage.isEmpty()) {
-        System.out.println("Optinioal empty from runImage");
+      var ranImageId = runImage(appName, appPort, externalPort);
+      if (ranImageId == -1)
         return Optional.empty();
+
+      try {
+        Thread.sleep(2000); // TODO: Have a better implementation
+      } catch (InterruptedException e) {
+        throw new AssertionError();
       }
 
-      var imageInfo = ranImage.get();
-      runningInstanceMap.put(imageInfo.squareId, imageInfo);
+      var imageInfo = getRunningImageInfo(appName, ranImageId);
+      if (imageInfo.isEmpty())
+        return Optional.empty();
 
-      var response =
-          new DeployResponse(imageInfo.squareId, appName, appPort, externalPort, imageInfo.name);
+      var info = imageInfo.get();
+      runningInstanceMap.put(info.squareId, info);
+
+      var response = new DeployResponse(info.squareId, appName, appPort, externalPort, info.name);
       return Optional.of(response);
 
     } catch (AssertionError e) {
@@ -197,6 +190,21 @@ public class DockerService {
       this.dockerId = Objects.requireNonNull(dockerId);
       this.serviceDocker = Objects.requireNonNull(serviceDocker);
       this.squareId = Objects.requireNonNull(id);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(name, dockerId, squareId, serviceDocker);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof ImageInfo))
+        return false;
+
+      ImageInfo imageInfo = (ImageInfo) obj;
+      return imageInfo.squareId == squareId && imageInfo.name.equals(name)
+          && imageInfo.serviceDocker.equals(serviceDocker) && imageInfo.dockerId.equals(dockerId);
     }
 
     @Override

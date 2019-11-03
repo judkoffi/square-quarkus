@@ -44,7 +44,7 @@ public class RunningAppEndpoint {
 
     var deployResponse = dockerService.runContainer(request.getAppName(), request.getPort());
 
-    var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "";
+    var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "{}";
 
     System.out.println(deployResponse);
 
