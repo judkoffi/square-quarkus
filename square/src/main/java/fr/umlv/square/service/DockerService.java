@@ -115,7 +115,7 @@ public class DockerService {
   private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId) {
     var psCommand = "docker ps";
     try {
-      var output = new ProcessBuilder().command("bash", "-c", psCommand).start().getInputStream();
+      var output = processBuilder.command("bash", "-c", psCommand).start().getInputStream();
       var consoleOutput = getOutputOfCommand(output);
 
       if (!consoleOutput.contains(runningName))
