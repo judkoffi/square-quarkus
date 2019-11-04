@@ -42,10 +42,9 @@ public class RunningAppEndpoint {
       return Response.status(400).entity("Invalid post body").build();
     }
 
-    var deployResponse =
-        dockerService.runContainer(request.getAppName(), request.getPort(), request.getPort());
+    var deployResponse = dockerService.runContainer(request.getAppName(), request.getPort());
 
-    var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "";
+    var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "{}";
 
     System.out.println(deployResponse);
 

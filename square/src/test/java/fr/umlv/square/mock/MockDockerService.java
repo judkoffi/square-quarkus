@@ -9,11 +9,10 @@ import io.quarkus.test.Mock;
 @Mock
 @ApplicationScoped
 public class MockDockerService extends DockerService {
+
   @Override
-  public Optional<DeployResponse> runContainer(String appName, int port, int defaultPort) {
-
-    var response = new DeployResponse(1, appName, port, 10000, appName + "_" + port);
-
+  public Optional<DeployResponse> runContainer(String appName, int appPort) {
+    var response = new DeployResponse(1, appName, appPort, 10000, appName + "_" + appPort);
     return Optional.of(response);
   }
 
