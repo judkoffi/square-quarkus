@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import javax.enterprise.context.ApplicationScoped;
 import fr.umlv.square.model.response.DeployResponse;
 
@@ -117,33 +118,46 @@ public class DockerService {
     try {
       var process = processBuilder.command("bash", "-c", psCommand).start();
 
-      try {
-        var exitValue = process.waitFor();
-        System.out.println("ps exit status: " + exitValue);
-
-      } catch (InterruptedException e) {
-      }
-
       var outputStream = process.getInputStream();
+      var exitValue = process.waitFor();
       var consoleOutput = getOutputOfCommand(outputStream);
 
-      System.out.println(consoleOutput);
-      if (!consoleOutput.contains(runningName))
+      if (!consoleOutput.contains(runningName)) {
         return Optional.empty();
-
+      }
 
       return buildImageInfoFromString(consoleOutput, runningName, runningId);
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
   }
-
 
   private Optional<ImageInfo> buildImageInfoFromString(String consoleOutput, String name, int id) {
     var lines = consoleOutput.split("\n");
     var line = Arrays.stream(lines).skip(1).filter((p) -> p.contains(name)).findFirst().get();
     var tokens = line.split("\\s+");
     return Optional.of(new ImageInfo(name, tokens[0], tokens[13], id));
+  }
+
+
+  private void someFunction(String appName, int appPort, int externalPort) {
+    CompletableFuture<Optional<DeployResponse>> combinedFuture = CompletableFuture
+      .supplyAsync(() -> runImage(appName, appPort, externalPort))
+      .thenCombine(CompletableFuture.supplyAsync(() -> ""), (squareId, a) -> (squareId == -1) ? Optional.empty() : getRunningImageInfo(appName, squareId)).thenCombine(CompletableFuture.supplyAsync(() -> ""), (optional, a) ->
+      {
+        if (optional.isEmpty())
+          return Optional.empty();
+
+        var info = (ImageInfo) optional.get();
+        runningInstanceMap.put(info.squareId, info);
+
+        System.out.println(info);
+        var response =
+            new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance);
+
+        return Optional.of(response);
+      });
+    // return combinedFuture.get();
   }
 
   /**
@@ -164,9 +178,12 @@ public class DockerService {
         return Optional.empty();
 
       var externalPort = generatePort(appPort);
+
       var ranImageId = runImage(appName, appPort, externalPort);
+
       if (ranImageId == -1)
         return Optional.empty();
+
 
       try {
         Thread.sleep(3000); // TODO: Have a better implementation
@@ -181,15 +198,14 @@ public class DockerService {
       var info = imageInfo.get();
       runningInstanceMap.put(info.squareId, info);
 
-      System.out.println(info);
-      var response =
-          new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance);
-      return Optional.of(response);
+      return Optional
+        .of(new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance));
 
     } catch (AssertionError e) {
       return Optional.empty();
     }
   }
+
 
   private static class ImageInfo {
     private final String name;
