@@ -115,9 +115,19 @@ public class DockerService {
   private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId) {
     var psCommand = "docker ps";
     try {
-      var output = processBuilder.command("bash", "-c", psCommand).start().getInputStream();
-      var consoleOutput = getOutputOfCommand(output);
+      var process = processBuilder.command("bash", "-c", psCommand).start();
 
+      try {
+        var exitValue = process.waitFor();
+        System.out.println("ps exit status: " + exitValue);
+
+      } catch (InterruptedException e) {
+      }
+
+      var outputStream = process.getInputStream();
+      var consoleOutput = getOutputOfCommand(outputStream);
+
+      System.out.println(consoleOutput);
       if (!consoleOutput.contains(runningName))
         return Optional.empty();
 
@@ -159,7 +169,7 @@ public class DockerService {
         return Optional.empty();
 
       try {
-        Thread.sleep(2000); // TODO: Have a better implementation
+        Thread.sleep(3000); // TODO: Have a better implementation
       } catch (InterruptedException e) {
         throw new AssertionError();
       }
@@ -171,7 +181,9 @@ public class DockerService {
       var info = imageInfo.get();
       runningInstanceMap.put(info.squareId, info);
 
-      var response = new DeployResponse(info.squareId, appName, appPort, externalPort, info.name);
+      System.out.println(info);
+      var response =
+          new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance);
       return Optional.of(response);
 
     } catch (AssertionError e) {
@@ -183,18 +195,18 @@ public class DockerService {
     private final String name;
     private final String dockerId;
     private final int squareId;
-    private final String serviceDocker;
+    private final String dockerInstance;
 
     public ImageInfo(String name, String dockerId, String serviceDocker, int id) {
       this.name = Objects.requireNonNull(name);
       this.dockerId = Objects.requireNonNull(dockerId);
-      this.serviceDocker = Objects.requireNonNull(serviceDocker);
+      this.dockerInstance = Objects.requireNonNull(serviceDocker);
       this.squareId = Objects.requireNonNull(id);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(name, dockerId, squareId, serviceDocker);
+      return Objects.hash(name, dockerId, squareId, dockerInstance);
     }
 
     @Override
@@ -204,13 +216,13 @@ public class DockerService {
 
       ImageInfo imageInfo = (ImageInfo) obj;
       return imageInfo.squareId == squareId && imageInfo.name.equals(name)
-          && imageInfo.serviceDocker.equals(serviceDocker) && imageInfo.dockerId.equals(dockerId);
+          && imageInfo.dockerInstance.equals(dockerInstance) && imageInfo.dockerId.equals(dockerId);
     }
 
     @Override
     public String toString() {
       return "name: " + name + "; dockerID " + dockerId + "; squareId" + squareId
-          + ": serviceDocker " + serviceDocker;
+          + ": serviceDocker " + dockerInstance;
     }
   }
 }
