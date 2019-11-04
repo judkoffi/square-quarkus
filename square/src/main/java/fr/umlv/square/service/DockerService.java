@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -98,66 +97,80 @@ public class DockerService {
     return !isUsedPort ? port : generatePort(notAvailablePort);
   }
 
-  private int runImage(String imageName, int appPort, int externalPort) {
+  private int runImage(String imageName, int appPort, int servicePort) {
     var id = generateId();
     var uniqueName = imageName + "-" + id;
 
-    var command =
-        "docker run -p " + externalPort + ":" + appPort + " --name " + uniqueName + " " + imageName;
+    var cmd =
+        "docker run -p " + servicePort + ":" + appPort + " --name " + uniqueName + " " + imageName;
 
     try {
-      var runProcess = processBuilder.command("bash", "-c", command).start().isAlive();
+      var runProcess = processBuilder.command("bash", "-c", cmd).start().isAlive();
       return runProcess ? id : -1;
     } catch (IOException e) {
       throw new AssertionError();
     }
   }
 
-  private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId) {
-    var psCommand = "docker ps";
+  private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId,
+      int servicePort) {
+    var cmd = "docker ps";
     try {
-      var process = processBuilder.command("bash", "-c", psCommand).start();
+      var process = processBuilder.command("bash", "-c", cmd).start();
 
       var outputStream = process.getInputStream();
       var exitValue = process.waitFor();
       var consoleOutput = getOutputOfCommand(outputStream);
-
-      if (!consoleOutput.contains(runningName)) {
+      System.out.println(consoleOutput);
+      if (exitValue != 0 || !consoleOutput.contains(runningName)) {
         return Optional.empty();
       }
 
-      return buildImageInfoFromString(consoleOutput, runningName, runningId);
+      return buildImageInfoFromString(consoleOutput, runningName, runningId, servicePort);
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
   }
 
-  private Optional<ImageInfo> buildImageInfoFromString(String consoleOutput, String name, int id) {
+  private Optional<ImageInfo> buildImageInfoFromString(String consoleOutput, String name, int id,
+      int servicePort) {
     var lines = consoleOutput.split("\n");
     var line = Arrays.stream(lines).skip(1).filter((p) -> p.contains(name)).findFirst().get();
     var tokens = line.split("\\s+");
-    return Optional.of(new ImageInfo(name, tokens[0], tokens[13], id));
+    return Optional.of(new ImageInfo(name, tokens[0], tokens[13], servicePort, id));
   }
 
+  private boolean generateAndBuildDockerFile(String appName, int appPort) {
+    var dockerImagePath = createDockerFile(appName, appPort);
+    return dockerImagePath == null ? false : buildImage(dockerImagePath, appName);
+  }
 
-  private void someFunction(String appName, int appPort, int externalPort) {
-    CompletableFuture<Optional<DeployResponse>> combinedFuture = CompletableFuture
-      .supplyAsync(() -> runImage(appName, appPort, externalPort))
-      .thenCombine(CompletableFuture.supplyAsync(() -> ""), (squareId, a) -> (squareId == -1) ? Optional.empty() : getRunningImageInfo(appName, squareId)).thenCombine(CompletableFuture.supplyAsync(() -> ""), (optional, a) ->
-      {
-        if (optional.isEmpty())
-          return Optional.empty();
+  // TODO: Implement better check of already builded image
+  private boolean isAlreadyImage(String appName) {
+    var cmd = "docker images " + appName;
 
-        var info = (ImageInfo) optional.get();
-        runningInstanceMap.put(info.squareId, info);
+    try {
+      var process = processBuilder.command("bash", "-c", cmd).start();
+      var outputStream = process.getInputStream();
+      var exitValue = process.waitFor();
+      var consoleOutput = getOutputOfCommand(outputStream);
+      return exitValue == 0 && consoleOutput.split(System.getProperty("line.separator")).length > 2;
+    } catch (IOException | InterruptedException e) {
+      throw new AssertionError();
+    }
+  }
 
-        System.out.println(info);
-        var response =
-            new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance);
-
-        return Optional.of(response);
-      });
-    // return combinedFuture.get();
+  private Optional<ImageInfo> runBuiledImage(String appName, int appPort) {
+    var externalPort = generatePort(appPort);
+    var ranImageId = runImage(appName, appPort, externalPort);
+    if (ranImageId == -1)
+      return Optional.empty();
+    try {
+      Thread.sleep(3000); // TODO: Have a better implementation
+    } catch (InterruptedException e) {
+      throw new AssertionError();
+    }
+    return getRunningImageInfo(appName, ranImageId, externalPort);
   }
 
   /**
@@ -169,29 +182,14 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      var dockerImagePath = createDockerFile(appName, appPort);
-      if (dockerImagePath == null)
-        return Optional.empty();
-
-      var isSuccededImageBuild = buildImage(dockerImagePath, appName);
-      if (!isSuccededImageBuild)
-        return Optional.empty();
-
-      var externalPort = generatePort(appPort);
-
-      var ranImageId = runImage(appName, appPort, externalPort);
-
-      if (ranImageId == -1)
-        return Optional.empty();
-
-
-      try {
-        Thread.sleep(3000); // TODO: Have a better implementation
-      } catch (InterruptedException e) {
-        throw new AssertionError();
+      if (!isAlreadyImage(appName)) {
+        System.out.println("already image");
+        var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
+        if (!makeDockerfile)
+          return Optional.empty();
       }
 
-      var imageInfo = getRunningImageInfo(appName, ranImageId);
+      var imageInfo = runBuiledImage(appName, appPort);
       if (imageInfo.isEmpty())
         return Optional.empty();
 
@@ -199,46 +197,31 @@ public class DockerService {
       runningInstanceMap.put(info.squareId, info);
 
       return Optional
-        .of(new DeployResponse(info.squareId, appName, appPort, externalPort, info.dockerInstance));
+        .of(new DeployResponse(info.squareId, appName, appPort, info.servicePort,
+            info.dockerInstance));
 
     } catch (AssertionError e) {
       return Optional.empty();
     }
   }
 
+  private void someFunction(String appName, int appPort, int servicePort) {
+    CompletableFuture<Optional<DeployResponse>> combinedFuture = CompletableFuture
+      .supplyAsync(() -> runImage(appName, appPort, servicePort))
+      .thenCombine(CompletableFuture.supplyAsync(() -> ""), (squareId, a) -> (squareId == -1) ? Optional.empty() : getRunningImageInfo(appName, squareId, servicePort)).thenCombine(CompletableFuture.supplyAsync(() -> ""), (optional, a) ->
+      {
+        if (optional.isEmpty())
+          return Optional.empty();
 
-  private static class ImageInfo {
-    private final String name;
-    private final String dockerId;
-    private final int squareId;
-    private final String dockerInstance;
+        var info = (ImageInfo) optional.get();
+        runningInstanceMap.put(info.squareId, info);
 
-    public ImageInfo(String name, String dockerId, String serviceDocker, int id) {
-      this.name = Objects.requireNonNull(name);
-      this.dockerId = Objects.requireNonNull(dockerId);
-      this.dockerInstance = Objects.requireNonNull(serviceDocker);
-      this.squareId = Objects.requireNonNull(id);
-    }
+        System.out.println(info);
+        var response =
+            new DeployResponse(info.squareId, appName, appPort, servicePort, info.dockerInstance);
 
-    @Override
-    public int hashCode() {
-      return Objects.hash(name, dockerId, squareId, dockerInstance);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof ImageInfo))
-        return false;
-
-      ImageInfo imageInfo = (ImageInfo) obj;
-      return imageInfo.squareId == squareId && imageInfo.name.equals(name)
-          && imageInfo.dockerInstance.equals(dockerInstance) && imageInfo.dockerId.equals(dockerId);
-    }
-
-    @Override
-    public String toString() {
-      return "name: " + name + "; dockerID " + dockerId + "; squareId" + squareId
-          + ": serviceDocker " + dockerInstance;
-    }
+        return Optional.of(response);
+      });
+    // return combinedFuture.get();
   }
 }
