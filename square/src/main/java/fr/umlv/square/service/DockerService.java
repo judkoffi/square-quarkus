@@ -5,13 +5,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import fr.umlv.square.model.response.DeployResponse;
+import fr.umlv.square.model.response.RunningInstanceInfo;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
@@ -125,19 +131,11 @@ public class DockerService {
       if (exitValue != 0 || !consoleOutput.contains(runningName)) {
         return Optional.empty();
       }
-
-      return buildImageInfoFromString(consoleOutput, runningName, runningId, servicePort);
+      var info = parseDockerPs(consoleOutput, (p) -> p.contains(runningName)).get(0);
+      return Optional.of(info);
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
-  }
-
-  private Optional<ImageInfo> buildImageInfoFromString(String consoleOutput, String name, int id,
-      int servicePort) {
-    var lines = consoleOutput.split("\n");
-    var line = Arrays.stream(lines).skip(1).filter((p) -> p.contains(name)).findFirst().get();
-    var tokens = line.split("\\s+");
-    return Optional.of(new ImageInfo(name, tokens[0], tokens[13], servicePort, id));
   }
 
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
@@ -197,8 +195,8 @@ public class DockerService {
       runningInstanceMap.put(info.squareId, info);
 
       return Optional
-        .of(new DeployResponse(info.squareId, appName, appPort, info.servicePort,
-            info.dockerInstance));
+        .of(new DeployResponse(info.squareId, appName, appPort, Integer.parseInt(info.servicePort),
+            info.name));
 
     } catch (AssertionError e) {
       return Optional.empty();
@@ -217,11 +215,43 @@ public class DockerService {
         runningInstanceMap.put(info.squareId, info);
 
         System.out.println(info);
-        var response =
-            new DeployResponse(info.squareId, appName, appPort, servicePort, info.dockerInstance);
+        var response = new DeployResponse(info.squareId, appName, appPort, servicePort, info.name);
 
         return Optional.of(response);
       });
     // return combinedFuture.get();
+  }
+
+  private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
+    var regex = "([A-Z\\s]+?)($|\\s{2,})";
+    var lines = psOutput.trim().split("\n");
+    // ((tokens[4]).split(":")[1]).split("->")[0]
+
+    return Arrays
+      .stream(lines)
+      .skip(1)
+      .filter(predicate)
+      .map((elt) -> elt.split(regex))
+      .map((tokens) -> new ImageInfo(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], -1)).collect(Collectors.toList());
+  }
+
+
+  public Optional<List<RunningInstanceInfo>> getRunnningList() {
+    var cmd = "docker ps";
+    try {
+      var process = processBuilder.command("bash", "-c", cmd).start();
+      var outputStream = process.getInputStream();
+      var exitValue = process.waitFor();
+
+      if (exitValue != 0)
+        return Optional.empty();
+
+      var consoleOutput = getOutputOfCommand(outputStream);
+      List<ImageInfo> infoList = parseDockerPs(consoleOutput, (__) -> true);
+      return Optional
+        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(-1, mapper.name, -1, -1, mapper.name, mapper.created)).collect(Collectors.toList()));
+    } catch (IOException | InterruptedException e) {
+      return Optional.empty();
+    }
   }
 }

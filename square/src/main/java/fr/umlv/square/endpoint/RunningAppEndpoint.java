@@ -2,6 +2,7 @@ package fr.umlv.square.endpoint;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -59,15 +60,10 @@ public class RunningAppEndpoint {
    * @return : a Response in JSON with all the informations of the app listed
    */
   public Response list() {
+    var runningApps = dockerService.getRunnningList();
 
-    var list = new ArrayList<String>();
-
-    for (int i = 0; i < 5; i++) {
-      list
-        .add(new RunningInstanceInfo(new Random().nextInt(), "appName_" + i, 8000 + i, 8000 + i,
-            "appName_" + i, "1m50").toJson());
-    }
-
+    var list = runningApps.isEmpty() ? new ArrayList<String>()
+        : runningApps.get().stream().map((mapper) -> mapper.toJson()).collect(Collectors.toList());
     return Response.ok().entity(list.toString()).build();
   }
 
