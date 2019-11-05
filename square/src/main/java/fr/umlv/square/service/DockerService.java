@@ -156,16 +156,14 @@ public class DockerService {
     return dockerImagePath == null ? false : buildImage(dockerImagePath, appName);
   }
 
-  // TODO: Implement better check of already builded image
   private boolean isAlreadyImage(String appName) {
-    var cmd = "docker images " + appName;
-
+    var cmd = "docker image inspect " + appName;
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
       var outputStream = process.getInputStream();
       var exitValue = process.waitFor();
       var consoleOutput = getOutputOfCommand(outputStream);
-      return exitValue == 0 && consoleOutput.split(System.getProperty("line.separator")).length > 2;
+      return exitValue == 0 && !consoleOutput.contains("[]");
     } catch (IOException | InterruptedException e) {
       throw new AssertionError();
     }
@@ -193,16 +191,16 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      // if (!isAlreadyImage(appName)) {
-      // System.out.println("already image");
-      var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
-      if (!makeDockerfile) {}
-       // return Optional.empty();
-       
+      if (!isAlreadyImage(appName)) {
+        System.out.println("not already image");
+        var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
+        if (!makeDockerfile)
+          return Optional.empty();
+      }
 
       var imageInfo = runBuiledImage(appName, appPort);
       if (imageInfo.isEmpty()) {
-       System.out.println("run empty");
+        System.out.println("run empty");
         return Optional.empty();
       }
 
@@ -218,30 +216,9 @@ public class DockerService {
     }
   }
 
-  private void someFunction(String appName, int appPort, int servicePort) {
-    CompletableFuture<Optional<DeployResponse>> combinedFuture = CompletableFuture
-      .supplyAsync(() -> runImage(appName, appPort, servicePort))
-      .thenCombine(CompletableFuture.supplyAsync(() -> ""), (squareId, a) -> (squareId == -1) ? Optional.empty() : getRunningImageInfo(appName, squareId, servicePort)).thenCombine(CompletableFuture.supplyAsync(() -> ""), (optional, a) ->
-      {
-        if (optional.isEmpty())
-          return Optional.empty();
-
-        var info = (ImageInfo) optional.get();
-        runningInstanceMap.put(info.squareId, info);
-
-        System.out.println(info);
-        var response =
-            new DeployResponse(info.squareId, appName, appPort, servicePort, info.dockerInstance);
-
-        return Optional.of(response);
-      });
-    // return combinedFuture.get();
-  }
-
   private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
     var regex = "([A-Z\\s]+?)($|\\s{2,})";
     var lines = psOutput.trim().split("\n");
-    // ((tokens[4]).split(":")[1]).split("->")[0]
 
     return Arrays
       .stream(lines)
@@ -253,7 +230,6 @@ public class DockerService {
         var id = Integer.parseInt(tokens[6].split("-")[1]);
         var ports = tokens[5].split(":");
 
-        System.out.println("Ports " + Arrays.deepToString(ports));
         var servicePort = Integer.parseInt(ports[1].split("->")[0]);
         var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
 
@@ -264,7 +240,6 @@ public class DockerService {
         var elapsedTime = minutes + "m" + secondes + "s";
 
         // TODO BETTER IMPLEMENT + DO CALCULUS
-
         return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime.toString(), tokens[4],
             appPort, servicePort, tokens[6], id);
       })
@@ -273,12 +248,6 @@ public class DockerService {
 
 
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
-    System.out.println(runningInstanceMap);
-    // var cmd = "docker ps";
-    System.out.println("Square host" + squareHost);
-
-    System.out.println("Square port " + squarePort);
-
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     try {
