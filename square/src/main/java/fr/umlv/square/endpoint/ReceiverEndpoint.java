@@ -38,7 +38,7 @@ public class ReceiverEndpoint {
 
 
     var outputStream =
-        processBuilder.command("bash", "-c", request.getMessage()).start().getInputStream();
+        processBuilder.command("bash", "-c", "echo " + request.getMessage() + ">> log1.log").start().getInputStream();
 
     var result = getOutput(outputStream);
     return result;

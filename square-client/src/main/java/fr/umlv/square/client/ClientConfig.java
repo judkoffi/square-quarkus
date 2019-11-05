@@ -22,4 +22,17 @@ class ClientConfig {
     var port = properties.getProperty("square.port");
     return new ClientConfig(host, port);
   }
+
+  public static ClientConfig fromEnv() {
+    var envVariable = new ProcessBuilder().environment();
+    var host = envVariable.get("SQUARE_HOST");
+    var port = envVariable.get("SQUARE_PORT");
+    return new ClientConfig(host, port);
+  }
+
+
+  @Override
+  public String toString() {
+    return "HOST=" + squareHost + "; PORT=" + squarePort;
+  }
 }

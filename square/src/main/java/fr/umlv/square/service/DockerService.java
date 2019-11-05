@@ -14,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
 
@@ -21,18 +22,24 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // DOckerfile use as template for all images
   private final static String DOCKERFILES_DIRECTORY;
-  private final static String APPS_DIRECTORY;
   private final static int MIN_PORT_NUMBER;
   private final static int MAX_PORT_NUMBER;
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
 
+  @ConfigProperty(name = "quarkus.http.host")
+  String squareHost;
+
+  @ConfigProperty(name = "quarkus.http.port")
+  String squarePort;
+
+
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
-        + "COPY {{1}}.jar /app/app.jar\n" + "COPY sqaure-client.jar /app/client.jar\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n"
-        + "CMD java -jar app.jar" + "CMD java -jar client.jar";
+        + "COPY apps/{{1}}.jar /app/app.jar\n"
+        + "COPY lib-client/square-client.jar /app/client.jar\n" + "ENV SQUARE_HOST={{3}}\n"
+        + "ENV SQUARE_PORT={{4}}\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n";
     DOCKERFILES_DIRECTORY = "docker-images/";
-    APPS_DIRECTORY = "apps/";
     MIN_PORT_NUMBER = 2000;
     MAX_PORT_NUMBER = 65535;
   }
@@ -56,7 +63,13 @@ public class DockerService {
   }
 
   private String createDockerFile(String appName, int port) {
-    var imageFile = DOCKERFILE_TEMPLATE.replace("{{1}}", appName).replace("{{2}}", "" + port);
+    var imageFile = DOCKERFILE_TEMPLATE
+      .replace("{{1}}", appName)
+      .replace("{{2}}", "" + port)
+      .replace("{{3}}", squareHost)
+      .replace("{{4}}", squarePort)
+      .concat("CMD java -jar app.jar &&\nCMD java -jar client.jar\n");
+
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
     try {
@@ -69,7 +82,7 @@ public class DockerService {
   }
 
   private boolean buildImage(String imagePath, String appName) {
-    var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " " + APPS_DIRECTORY;
+    var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " ./";
     try {
       var exitValue = processBuilder.command("bash", "-c", builImageCommand).start().waitFor();
       return (exitValue == 0);
@@ -118,8 +131,9 @@ public class DockerService {
 
   private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId,
       int servicePort) {
-    //var cmd = "docker ps";
-	  var cmd = "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
+    // var cmd = "docker ps";
+    var cmd =
+        "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
 
@@ -179,16 +193,18 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      if (!isAlreadyImage(appName)) {
-        System.out.println("already image");
-        var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
-        if (!makeDockerfile)
-          return Optional.empty();
-      }
+      // if (!isAlreadyImage(appName)) {
+      // System.out.println("already image");
+      var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
+      if (!makeDockerfile) {}
+       // return Optional.empty();
+       
 
       var imageInfo = runBuiledImage(appName, appPort);
-      if (imageInfo.isEmpty())
+      if (imageInfo.isEmpty()) {
+       System.out.println("run empty");
         return Optional.empty();
+      }
 
       var info = imageInfo.get();
       runningInstanceMap.put(info.squareId, info);
@@ -236,30 +252,35 @@ public class DockerService {
       {
         var id = Integer.parseInt(tokens[6].split("-")[1]);
         var ports = tokens[5].split(":");
-        
+
         System.out.println("Ports " + Arrays.deepToString(ports));
         var servicePort = Integer.parseInt(ports[1].split("->")[0]);
         var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
-        
-        var timestamp = (tokens[3].trim());        
+
+        var timestamp = (tokens[3].trim());
         var time = timestamp.split(" ");
         var minutes = time[1].split(":")[1];
         var secondes = time[1].split(":")[2];
         var elapsedTime = minutes + "m" + secondes + "s";
-        		
+
         // TODO BETTER IMPLEMENT + DO CALCULUS
-        
-        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime.toString(), tokens[4], appPort,
-            servicePort, tokens[6], id);
+
+        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime.toString(), tokens[4],
+            appPort, servicePort, tokens[6], id);
       })
       .collect(Collectors.toList());
   }
 
 
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
-	  System.out.println(runningInstanceMap);
-    //var cmd = "docker ps";
-	var cmd = "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
+    System.out.println(runningInstanceMap);
+    // var cmd = "docker ps";
+    System.out.println("Square host" + squareHost);
+
+    System.out.println("Square port " + squarePort);
+
+    var cmd =
+        "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
       var outputStream = process.getInputStream();
