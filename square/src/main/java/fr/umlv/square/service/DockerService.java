@@ -259,7 +259,7 @@ public class DockerService {
       var consoleOutput = getOutputOfCommand(outputStream);
       List<ImageInfo> infoList = parseDockerPs(consoleOutput, (__) -> true);
       return Optional
-        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.dockerInstance, -1, -1, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
+        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
