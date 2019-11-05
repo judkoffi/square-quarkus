@@ -5,22 +5,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
-
-
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
 
@@ -36,8 +29,8 @@ public class DockerService {
 
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
-        + "COPY {{1}}.jar /app/app.jar\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n"
-        + "CMD java -jar app.jar";
+        + "COPY {{1}}.jar /app/app.jar\n" + "COPY sqaure-client.jar /app/client.jar\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n"
+        + "CMD java -jar app.jar" + "CMD java -jar client.jar";
     DOCKERFILES_DIRECTORY = "docker-images/";
     APPS_DIRECTORY = "apps/";
     MIN_PORT_NUMBER = 2000;
