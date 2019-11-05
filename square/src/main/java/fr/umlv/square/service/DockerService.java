@@ -5,9 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -195,8 +193,8 @@ public class DockerService {
       runningInstanceMap.put(info.squareId, info);
 
       return Optional
-        .of(new DeployResponse(info.squareId, appName, appPort, Integer.parseInt(info.servicePort),
-            info.name));
+        .of(new DeployResponse(info.squareId, appName, appPort, info.servicePort,
+            info.dockerInstance));
 
     } catch (AssertionError e) {
       return Optional.empty();
@@ -215,7 +213,8 @@ public class DockerService {
         runningInstanceMap.put(info.squareId, info);
 
         System.out.println(info);
-        var response = new DeployResponse(info.squareId, appName, appPort, servicePort, info.name);
+        var response =
+            new DeployResponse(info.squareId, appName, appPort, servicePort, info.dockerInstance);
 
         return Optional.of(response);
       });
@@ -232,7 +231,18 @@ public class DockerService {
       .skip(1)
       .filter(predicate)
       .map((elt) -> elt.split(regex))
-      .map((tokens) -> new ImageInfo(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], tokens[5], tokens[6], -1)).collect(Collectors.toList());
+      .map((tokens) ->
+      {
+        var id = Integer.parseInt(tokens[6].split("-")[1]);
+        var ports = tokens[5].split(":");
+        
+        System.out.println("Ports " + Arrays.deepToString(ports));
+        var servicePort = Integer.parseInt(ports[1].split("->")[0]);
+        var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
+        return new ImageInfo(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], appPort,
+            servicePort, tokens[6], id);
+      })
+      .collect(Collectors.toList());
   }
 
 
@@ -249,7 +259,7 @@ public class DockerService {
       var consoleOutput = getOutputOfCommand(outputStream);
       List<ImageInfo> infoList = parseDockerPs(consoleOutput, (__) -> true);
       return Optional
-        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(-1, mapper.name, -1, -1, mapper.name, mapper.created)).collect(Collectors.toList()));
+        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.dockerInstance, -1, -1, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
