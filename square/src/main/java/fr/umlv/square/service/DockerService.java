@@ -5,15 +5,22 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.enterprise.context.ApplicationScoped;
+
+
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
 
@@ -118,7 +125,8 @@ public class DockerService {
 
   private Optional<ImageInfo> getRunningImageInfo(String runningName, int runningId,
       int servicePort) {
-    var cmd = "docker ps";
+    //var cmd = "docker ps";
+	  var cmd = "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
 
@@ -239,7 +247,16 @@ public class DockerService {
         System.out.println("Ports " + Arrays.deepToString(ports));
         var servicePort = Integer.parseInt(ports[1].split("->")[0]);
         var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
-        return new ImageInfo(tokens[0], tokens[1], tokens[2], tokens[3], tokens[4], appPort,
+        
+        var timestamp = (tokens[3].trim());        
+        var time = timestamp.split(" ");
+        var minutes = time[1].split(":")[1];
+        var secondes = time[1].split(":")[2];
+        var elapsedTime = minutes + "m" + secondes + "s";
+        		
+        // TODO BETTER IMPLEMENT + DO CALCULUS
+        
+        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime.toString(), tokens[4], appPort,
             servicePort, tokens[6], id);
       })
       .collect(Collectors.toList());
@@ -247,7 +264,9 @@ public class DockerService {
 
 
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
-    var cmd = "docker ps";
+	  System.out.println(runningInstanceMap);
+    //var cmd = "docker ps";
+	var cmd = "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
       var outputStream = process.getInputStream();
