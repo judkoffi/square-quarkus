@@ -6,6 +6,9 @@ import javax.validation.constraints.NotNull;
 public class ClientLogRequest {
   @NotNull
   @NotBlank
+  private String container;
+  @NotNull
+  @NotBlank
   private String message;
 
   public ClientLogRequest() {}
@@ -14,12 +17,20 @@ public class ClientLogRequest {
     return message;
   }
 
+  public String getContainer() {
+    return container;
+  }
+
+  public void setDockerId(String container) {
+    this.container = container;
+  }
+
   public void setMessage(String message) {
     this.message = message;
   }
 
   @Override
   public String toString() {
-    return "log request :" + message;
+    return "log request :" + message + " from: " + container;
   }
 }

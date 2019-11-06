@@ -10,17 +10,20 @@ public class SquareClient {
   private final String ENDPOINT = "/container-log/send-log";
   private final String squareUrl;
   private final HttpClient client;
+  private final String dockerId;
 
   public SquareClient(ClientConfig clientConfig) {
     this.squareUrl = "http://" + clientConfig.squareHost + ":" + clientConfig.squarePort;
     this.client = HttpClient.newHttpClient();
+    this.dockerId = clientConfig.dockerId;
   }
 
-  public void sendLog(String message) throws IOException, InterruptedException {
-    var uri = squareUrl + ENDPOINT;
 
-    System.out.println(message);
-    var body = "{\"message\":\"" + message + "\"}";
+  public void sendLog(String message) {
+    var uri = squareUrl + ENDPOINT;
+    var body = "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\"}";
+
+    System.out.println(body);
 
     var request = HttpRequest
       .newBuilder()
@@ -33,8 +36,9 @@ public class SquareClient {
       var response = client.send(request, BodyHandlers.ofString());
       System.out.println(response.statusCode());
       System.out.println(response.body());
-    } catch (IOException | InterruptedException e1) {
+    } catch (IOException | InterruptedException e) {
       throw new AssertionError();
     }
   }
 }
+

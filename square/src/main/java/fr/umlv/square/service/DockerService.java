@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
@@ -68,7 +67,7 @@ public class DockerService {
       .replace("{{2}}", "" + port)
       .replace("{{3}}", squareHost)
       .replace("{{4}}", squarePort)
-      .concat("CMD java -jar app.jar &&\nCMD java -jar client.jar\n");
+      .concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
 
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
