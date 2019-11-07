@@ -25,7 +25,7 @@ class ClientConfig {
     String line = null;
     while ((line = reader.readLine()) != null) {
       builder.append(line);
-      builder.append(System.getProperty("line.separator"));
+      //builder.append(System.getProperty("line.separator"));
     }
     return builder.toString();
   }
