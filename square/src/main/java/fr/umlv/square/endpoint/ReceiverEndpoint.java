@@ -30,18 +30,19 @@ public class ReceiverEndpoint {
 
   @POST
   @Path("/send-log/")
-  public String kawaii(ClientLogRequest request) throws IOException {
+  public String kawaii(String request) throws IOException {
     var processBuilder = new ProcessBuilder();
     processBuilder.directory(new File("../../logs/"));
 
-    System.out.println("request " + request.toString());
+    System.out.println("request " + request);
 
 
+    /*
     var outputStream =
         processBuilder.command("bash", "-c", "echo " + request.getMessage() + ">> log1.log").start().getInputStream();
 
-    var result = getOutput(outputStream);
-    return result;
+    var result = getOutput(outputStream);*/
+    return "";
   }
 
 }
