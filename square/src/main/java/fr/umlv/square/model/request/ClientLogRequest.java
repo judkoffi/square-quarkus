@@ -21,7 +21,7 @@ public class ClientLogRequest {
     return container;
   }
 
-  public void setDockerId(String container) {
+  public void setContainer(String container) {
     this.container = container;
   }
 
