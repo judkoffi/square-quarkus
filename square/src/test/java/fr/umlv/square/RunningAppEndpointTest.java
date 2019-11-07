@@ -2,9 +2,10 @@ package fr.umlv.square;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-
+import fr.umlv.square.model.response.RunningInstanceInfo;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
@@ -127,6 +128,24 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(400)
       .body(is("Invalid post body"));
+  }
+
+
+  @Test
+  public void testListEndpoit() {
+    var instance1 = new RunningInstanceInfo(1, "sortapp", 8080, 9000, "sortapp-1", "4m50s");
+    var instance2 = new RunningInstanceInfo(15, "hellapi", 8080, 1000, "hellapi-15", "8m50s");
+    var instance3 = new RunningInstanceInfo(238, "yep", 8080, 5010, "yep-238", "17m50s");
+    var list = List.of(instance1, instance2, instance3);
+    var result = list.stream().map((mapper) -> mapper.toJson()).collect(Collectors.toList());
+
+    given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/app/list")
+      .then()
+      .statusCode(200)
+      .body(is(result.toString()));
   }
 
 }
