@@ -39,6 +39,10 @@ class ClientConfig {
     return new ClientConfig(host, port, "");
   }
 
+  public static ClientConfig func(){
+    return new ClientConfig("192.168.43.210", "5050", "zbeubeu");
+  }
+  
   public static ClientConfig fromEnv() {
     var processBuilder = new ProcessBuilder();
     var envVariable = processBuilder.environment();
