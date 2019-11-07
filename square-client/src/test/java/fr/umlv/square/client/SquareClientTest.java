@@ -1,6 +1,6 @@
 package fr.umlv.square.client;
 
-public class SqaureClientTest {
+public class SquareClientTest {
 
 
 

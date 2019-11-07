@@ -74,7 +74,8 @@ public class DockerService {
       .replace("{{2}}", "" + port)
       .replace("{{3}}", squareHost)
       .replace("{{4}}", squarePort)
-      .concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
+      .concat("CMD java -jar client.jar");
+      //.concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
 
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
