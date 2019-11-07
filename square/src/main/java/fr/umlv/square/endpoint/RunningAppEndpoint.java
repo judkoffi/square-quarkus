@@ -82,10 +82,10 @@ public class RunningAppEndpoint {
       return Response.status(400).entity("Invalid post body").build();
     }
 
-    var result =
-        new RunningInstanceInfo(request.getId(), "appName_", 8000, 8000, "appName_", "1m50");
+    var optional = dockerService.stopApp(request.getId());
+    var result = optional.isEmpty() ? "{}" : optional.get().toJson();    
 
-    return Response.ok().entity(result.toJson()).build();
+    return Response.ok().entity(result).build();
   }
 
 }

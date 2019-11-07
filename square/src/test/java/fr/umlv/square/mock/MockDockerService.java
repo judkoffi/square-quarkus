@@ -26,4 +26,11 @@ public class MockDockerService extends DockerService {
     var list = List.of(instance1, instance2, instance3);
     return Optional.of(list);
   }
+
+  @Override
+  public Optional<RunningInstanceInfo> stopApp(int key) {
+    var runningInstance = new RunningInstanceInfo(10, "fruitapi", 8080, 1000, "fruitapi-1", "2m30");
+    return Optional.of(runningInstance);
+  }
+
 }

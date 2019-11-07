@@ -5,11 +5,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.TimeZone;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
@@ -26,10 +33,10 @@ public class DockerService {
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
 
-  @ConfigProperty(name = "quarkus.http.host")
+  @ConfigProperty(name = "quarkus.http.host") // read application.properties
   String squareHost;
 
-  @ConfigProperty(name = "quarkus.http.port")
+  @ConfigProperty(name = "quarkus.http.port") // read application.properties
   String squarePort;
 
 
@@ -232,15 +239,30 @@ public class DockerService {
         var servicePort = Integer.parseInt(ports[1].split("->")[0]);
         var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
 
-        var timestamp = (tokens[3].trim());
-        var time = timestamp.split(" ");
-        var minutes = time[1].split(":")[1];
-        var secondes = time[1].split(":")[2];
-        var elapsedTime = minutes + "m" + secondes + "s";
+        var timestampString = (tokens[3].trim());
 
-        // TODO BETTER IMPLEMENT + DO CALCULUS
-        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime.toString(), tokens[4],
-            appPort, servicePort, tokens[6], id);
+
+
+        var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
+
+        Date date = null;
+        try {
+          date = dateFormatter.parse(timestampString);
+        } catch (ParseException e) {
+        }
+
+        var timeTarget = date.getTime();
+        var diff = System.currentTimeMillis() - timeTarget;
+        var calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(diff);
+        var elapsedTime = calendar.get(Calendar.MINUTE) + "m" + calendar.get(Calendar.SECOND) + "s";
+
+        System.out.println("elapsed: " + elapsedTime);
+        
+        // TODO checked if minute > 60 ???
+
+        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime, tokens[4], appPort,
+            servicePort, tokens[6], id);
       })
       .collect(Collectors.toList());
   }
@@ -261,6 +283,31 @@ public class DockerService {
       List<ImageInfo> infoList = parseDockerPs(consoleOutput, (__) -> true);
       return Optional
         .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
+    } catch (IOException | InterruptedException e) {
+      return Optional.empty();
+    }
+  }
+
+  public Optional<RunningInstanceInfo> stopApp(int key) {
+    var runningInstance = runningInstanceMap.get(key);
+
+    var cmd = "docker kill " + runningInstance.containerId;
+
+    try {
+      var process = processBuilder.command("bash", "-c", cmd).start();
+      var outputStream = process.getInputStream();
+      var exitValue = process.waitFor();
+
+      if (exitValue != 0)
+        return Optional.empty();
+
+      var consoleOutput = getOutputOfCommand(outputStream);
+      System.out.println(consoleOutput);
+
+      return Optional
+        .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,
+            runningInstance.appPort, runningInstance.servicePort, runningInstance.dockerInstance,
+            runningInstance.status));
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }

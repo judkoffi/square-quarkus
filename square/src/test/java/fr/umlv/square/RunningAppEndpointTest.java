@@ -91,21 +91,6 @@ public class RunningAppEndpointTest {
       .body(is("Invalid post body"));
   }
 
-
-  @Test
-  public void testAppStopEndpoint() {
-    var expected =
-        "{\"id\": 2, \"app\": \"appName_\", \"port\": 8000, \"service-docker\": 8000, \"docker-instance\":\"appName_\", \"elapsed-time\":\"1m50\"}";
-    given()
-      .contentType(ContentType.JSON)
-      .body("{\"id\": \"2\"}")
-      .when()
-      .post("/app/stop")
-      .then()
-      .statusCode(200)
-      .body(is(expected));
-  }
-
   @Test
   public void testBadRequestStop() {
     given()
@@ -132,7 +117,7 @@ public class RunningAppEndpointTest {
 
 
   @Test
-  public void testListEndpoit() {
+  public void testListEndpoint() {
     var instance1 = new RunningInstanceInfo(1, "sortapp", 8080, 9000, "sortapp-1", "4m50s");
     var instance2 = new RunningInstanceInfo(15, "hellapi", 8080, 1000, "hellapi-15", "8m50s");
     var instance3 = new RunningInstanceInfo(238, "yep", 8080, 5010, "yep-238", "17m50s");
@@ -146,6 +131,19 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(200)
       .body(is(result.toString()));
+  }
+
+  @Test
+  public void testStopEndpoint() {
+    var runningInstance = new RunningInstanceInfo(10, "fruitapi", 8080, 1000, "fruitapi-1", "2m30");
+    given()
+      .contentType(ContentType.JSON)
+      .body("{\"id\": 10}")
+      .when()
+      .post("/app/stop")
+      .then()
+      .statusCode(200)
+      .body(is(runningInstance.toJson()));
   }
 
 }
