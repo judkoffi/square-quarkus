@@ -6,4 +6,4 @@ ENV SQUARE_HOST=192.168.43.210
 ENV SQUARE_PORT=5050
 RUN chmod 775 /app
 EXPOSE 8080
-CMD java -jar client.jar
+#CMD java -jar client.jar

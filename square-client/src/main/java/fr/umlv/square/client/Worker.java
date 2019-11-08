@@ -6,8 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 
-// TODO: Find more significant name
-public class A {
+public class Worker {
   private final static String OUTPUT_FILE = "outputLogfile.log";
   private final static String ERREUR_FILE = "errorLogfile.log";
   private final SquareClient squareClient;
@@ -15,7 +14,7 @@ public class A {
   private int outputReadingIndex;
   private int erreurReadingIndex;
 
-  public A() {
+  public Worker() {
     this.outputReadingIndex = 0;
     this.erreurReadingIndex = 0;
     this.squareClient = new SquareClient(ClientConfig.fromEnv());
@@ -37,6 +36,7 @@ public class A {
       return false;
     }
   }
+
 
   public void doWork() throws IOException {
     var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());
