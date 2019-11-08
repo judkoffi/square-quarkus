@@ -11,6 +11,7 @@ public class SquareClient {
   private final String squareUrl;
   private final HttpClient client;
   private final String dockerId;
+  private final Object lock = new Object();
 
   public SquareClient(ClientConfig clientConfig) {
     this.squareUrl = "http://" + clientConfig.squareHost + ":" + clientConfig.squarePort;
@@ -18,26 +19,33 @@ public class SquareClient {
     this.dockerId = clientConfig.dockerId;
   }
 
+  private String buildJson(String message, LogType type) {
+    synchronized (lock) {
+      return "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\", \"logtype\":\""
+          + type + "\"}";
+    }
+  }
 
-  public void sendLog(String message) {
-    var uri = squareUrl + ENDPOINT;
-    var body = "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\"}";
+  public void sendLog(String message, LogType type) {
+    synchronized (lock) {
+      var uri = squareUrl + ENDPOINT;
+      var body = buildJson(message, type);
+      System.out.println(body);
 
-    System.out.println(body);
+      var request = HttpRequest
+        .newBuilder()
+        .uri(URI.create(uri))
+        .header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(body))
+        .build();
 
-    var request = HttpRequest
-      .newBuilder()
-      .uri(URI.create(uri))
-      .header("Content-Type", "application/json")
-      .POST(HttpRequest.BodyPublishers.ofString(body))
-      .build();
-
-    try {
-      var response = client.send(request, BodyHandlers.ofString());
-      System.out.println(response.statusCode());
-      System.out.println(response.body());
-    } catch (IOException | InterruptedException e) {
-      throw new AssertionError();
+      try {
+        var response = client.send(request, BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+      } catch (IOException | InterruptedException e) {
+        throw new AssertionError();
+      }
     }
   }
 }
