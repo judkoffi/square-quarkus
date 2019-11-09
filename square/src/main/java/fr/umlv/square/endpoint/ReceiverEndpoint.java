@@ -16,7 +16,6 @@ import fr.umlv.square.model.request.ClientLogRequest;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReceiverEndpoint {
-
   private String getOutput(InputStream outpuStream) throws IOException {
     var reader = new BufferedReader(new InputStreamReader(outpuStream));
     var builder = new StringBuilder();
@@ -37,8 +36,10 @@ public class ReceiverEndpoint {
     System.out.println("request " + request);
 
 
-    var outputStream =
-        processBuilder.command("bash", "-c", "echo " + request.getMessage() + ">> log1.log").start().getInputStream();
+    var outputStream = processBuilder
+      .command("bash", "-c", "echo " + request.getMessage() + ">> log1.log")
+      .start()
+      .getInputStream();
 
     var result = getOutput(outputStream);
     return result;
