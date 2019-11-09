@@ -1,5 +1,7 @@
 package fr.umlv.square.service;
 
+import java.util.Objects;
+
 class ImageInfo {
   final String containerId;
   final String imageName;
@@ -22,5 +24,31 @@ class ImageInfo {
     this.servicePort = servicePort;
     this.dockerInstance = dockerInstance;
     this.squareId = squareId;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects
+      .hash(containerId, imageName, command, created, status, appPort, servicePort, dockerInstance,
+          squareId);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ImageInfo))
+      return false;
+    ImageInfo info = (ImageInfo) obj;
+    return info.squareId == squareId && info.appPort == appPort && info.servicePort == servicePort
+        && info.dockerInstance.equals(dockerInstance) && info.imageName.equals(imageName)
+        && info.containerId.equals(containerId) && info.status.equals(status)
+        && info.created.equals(created) && info.command.equals(command);
+  }
+
+  @Override
+  public String toString() {
+    return "ImageInfo [containerId=" + containerId + ", imageName=" + imageName + ", command="
+        + command + ", created=" + created + ", status=" + status + ", appPort=" + appPort
+        + ", servicePort=" + servicePort + ", dockerInstance=" + dockerInstance + ", squareId="
+        + squareId + "]";
   }
 }

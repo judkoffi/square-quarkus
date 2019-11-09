@@ -1,7 +1,6 @@
 package fr.umlv.square.endpoint;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.validation.Validator;
@@ -14,7 +13,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
-import fr.umlv.square.model.response.RunningInstanceInfo;
 import fr.umlv.square.service.DockerService;
 
 @Path("/app")
