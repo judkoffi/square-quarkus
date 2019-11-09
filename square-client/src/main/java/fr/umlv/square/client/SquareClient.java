@@ -26,7 +26,7 @@ public class SquareClient {
     }
   }
 
-  public void sendLog(String message, LogType type) {
+  public void sendInfoLog(String message, LogType type) {
     synchronized (lock) {
       var uri = squareUrl + ENDPOINT;
       var body = buildJson(message, type);

@@ -21,7 +21,9 @@ import fr.umlv.square.model.response.LogTimeResponse;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class LogEndpoint {
+
   private final static ArrayList<LogTimeResponse> data;
+
   static {
     data = fillArrayList();
   }
@@ -60,9 +62,9 @@ public class LogEndpoint {
       return Response.status(400).entity("Invalid time value").build();
 
     var result = logsFiltedByTime(time)
-                                       .filter(getPredicate(filter))
-                                       .map(e -> e.toJson())
-                                       .collect(Collectors.toList());
+      .filter(getPredicate(filter))
+      .map(e -> e.toJson())
+      .collect(Collectors.toList());
 
     return Response.ok().entity(result.toString()).build();
   }
@@ -77,9 +79,8 @@ public class LogEndpoint {
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 5; j++) {
         arraylist
-                 .add(new LogTimeResponse(j, "app:" + i, 80 + i, 80 + i, "docker_80-" + i,
-                     "log_" + i,
-                     new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
+          .add(new LogTimeResponse(j, "app:" + i, 80 + i, 80 + i, "docker_80-" + i, "log_" + i,
+              new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
       }
     }
     return arraylist;
@@ -106,8 +107,8 @@ public class LogEndpoint {
     var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
     var filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
     return data
-               .stream()
-               .filter((log) -> log.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
+      .stream()
+      .filter((log) -> log.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
 
   }
 

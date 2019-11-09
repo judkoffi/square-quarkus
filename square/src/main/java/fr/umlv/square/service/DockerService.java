@@ -72,7 +72,7 @@ public class DockerService {
       .replace("{{3}}", squareHost)
       .replace("{{4}}", squarePort)
       .concat("CMD java -jar client.jar");
-      //.concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
+    // .concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
 
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
@@ -256,7 +256,7 @@ public class DockerService {
         var elapsedTime = calendar.get(Calendar.MINUTE) + "m" + calendar.get(Calendar.SECOND) + "s";
 
         System.out.println("elapsed: " + elapsedTime);
-        
+
         // TODO checked if minute > 60 ???
 
         return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime, tokens[4], appPort,
@@ -278,7 +278,8 @@ public class DockerService {
         return Optional.empty();
 
       var consoleOutput = getOutputOfCommand(outputStream);
-      List<ImageInfo> infoList = parseDockerPs(consoleOutput, (__) -> true);
+      List<ImageInfo> infoList = parseDockerPs(consoleOutput, (p) -> true);
+
       return Optional
         .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
     } catch (IOException | InterruptedException e) {
@@ -309,5 +310,18 @@ public class DockerService {
     } catch (IOException | InterruptedException e) {
       return Optional.empty();
     }
+  }
+
+  public int findIdFromContainerId(String containerId) {
+    var imageInfo = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter((p) -> p.getValue().containerId.equals(containerId))
+      .findFirst();
+    return imageInfo.isEmpty() ? -1 : imageInfo.get().getKey();
+  }
+
+  public void func() {
+    System.out.println(runningInstanceMap);
   }
 }

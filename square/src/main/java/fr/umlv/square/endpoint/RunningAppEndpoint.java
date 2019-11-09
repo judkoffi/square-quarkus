@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
 import fr.umlv.square.service.DockerService;
+import fr.umlv.square.util.SquareHttpStatusCode;
 
 @Path("/app")
 @Produces(MediaType.APPLICATION_JSON)
@@ -38,7 +39,10 @@ public class RunningAppEndpoint {
     var violations = validator.validate(request);
 
     if (!violations.isEmpty()) {
-      return Response.status(400).entity("Invalid post body").build();
+      return Response
+        .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
+        .entity("Invalid post body")
+        .build();
     }
 
     var deployResponse = dockerService.runContainer(request.getAppName(), request.getPort());
@@ -47,7 +51,7 @@ public class RunningAppEndpoint {
 
     System.out.println(deployResponse);
 
-    return Response.ok().entity(entityBody).build();
+    return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity(entityBody).build();
   }
 
   @GET
@@ -77,13 +81,16 @@ public class RunningAppEndpoint {
     var violations = validator.validate(request);
 
     if (!violations.isEmpty()) {
-      return Response.status(400).entity("Invalid post body").build();
+      return Response
+        .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
+        .entity("Invalid post body")
+        .build();
     }
 
     var optional = dockerService.stopApp(request.getId());
-    var result = optional.isEmpty() ? "{}" : optional.get().toJson();    
+    var result = optional.isEmpty() ? "{}" : optional.get().toJson();
 
-    return Response.ok().entity(result).build();
+    return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity(result).build();
   }
 
 }

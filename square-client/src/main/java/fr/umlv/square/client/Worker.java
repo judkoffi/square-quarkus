@@ -43,7 +43,7 @@ public class Worker {
     var newMessageList = list.subList(outputReadingIndex, list.size());
     var msg = newMessageList.toString();
     outputReadingIndex = list.size();
-    new Thread(() -> squareClient.sendLog(msg, LogType.INFO)).start();
+    new Thread(() -> squareClient.sendInfoLog(msg, LogType.INFO)).start();
     try {
       Thread.sleep(5000);
     } catch (InterruptedException e) {
