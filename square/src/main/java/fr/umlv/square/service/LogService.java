@@ -1,26 +1,25 @@
 package fr.umlv.square.service;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 @ApplicationScoped
 public class LogService {
   private final HashMap<Integer, LogInfo> logsMap;
 
-  @Inject
-  DockerService dockerService;
-
-
   public LogService() {
     this.logsMap = new HashMap<Integer, LogInfo>();
   }
 
-  public void saveLog(LogInfo log) {
-    System.out.println("finded id:" + dockerService.findIdFromContainerId(log.getContainerId()));
+  public void saveLog(List<LogInfo> parsedLogs) {
+    parsedLogs.stream().forEach((log) -> logsMap.put(log.getSquareId(), log));
   }
 
-public void a() {
-dockerService.func();
-}
+
+  public Map getLogs() {
+    return logsMap;
+  }
+
 }

@@ -19,17 +19,16 @@ public class SquareClient {
     this.dockerId = clientConfig.dockerId;
   }
 
-  private String buildJson(String message, LogType type) {
+  private String buildJson(String message) {
     synchronized (lock) {
-      return "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\", \"logtype\":\""
-          + type + "\"}";
+      return "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\"}";
     }
   }
 
-  public void sendInfoLog(String message, LogType type) {
+  public void sendInfoLog(String message) {
     synchronized (lock) {
       var uri = squareUrl + ENDPOINT;
-      var body = buildJson(message, type);
+      var body = buildJson(message);
       System.out.println(body);
 
       var request = HttpRequest

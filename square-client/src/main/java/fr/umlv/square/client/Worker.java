@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import fr.umlv.square.model.LogModel;
 
 public class Worker {
   private final static String OUTPUT_FILE = "outputLogfile.log";
@@ -37,13 +40,21 @@ public class Worker {
     }
   }
 
+  private String parseListLog(List<String> logs) {
+    return logs
+      .stream()
+      .map((mapper) -> LogParser.parseLine(mapper).split(System.getProperty("line.separator")))
+      .map((mapper) -> new LogModel(mapper[2], mapper[0], mapper[1]).toString())
+      .collect(Collectors.joining(" <> "));
+  }
+
 
   public void doWork() throws IOException {
     var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());
     var newMessageList = list.subList(outputReadingIndex, list.size());
-    var msg = newMessageList.toString();
+    var msg = parseListLog(newMessageList);
     outputReadingIndex = list.size();
-    new Thread(() -> squareClient.sendInfoLog(msg, LogType.INFO)).start();
+    new Thread(() -> squareClient.sendInfoLog(msg)).start();
     try {
       Thread.sleep(5000);
     } catch (InterruptedException e) {
