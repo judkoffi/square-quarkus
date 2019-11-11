@@ -25,8 +25,8 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // DOckerfile use as template for all images
   private final static String DOCKERFILES_DIRECTORY;
-  private final static int MIN_PORT_NUMBER;
-  private final static int MAX_PORT_NUMBER;
+  private final static int MIN_PORT_NUMBER = 2000;
+  private final static int MAX_PORT_NUMBER = 65535;
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
 
@@ -43,8 +43,6 @@ public class DockerService {
         + "COPY lib-client/square-client.jar /app/client.jar\n" + "ENV SQUARE_HOST={{3}}\n"
         + "ENV SQUARE_PORT={{4}}\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n";
     DOCKERFILES_DIRECTORY = "docker-images/";
-    MIN_PORT_NUMBER = 2000;
-    MAX_PORT_NUMBER = 65535;
   }
 
   public DockerService() {
@@ -239,8 +237,6 @@ public class DockerService {
 
         var timestampString = (tokens[3].trim());
 
-
-
         var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
 
         Date date = null;
@@ -258,7 +254,6 @@ public class DockerService {
         System.out.println("elapsed: " + elapsedTime);
 
         // TODO checked if minute > 60 ???
-
         return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime, tokens[4], appPort,
             servicePort, tokens[6], id);
       })
@@ -321,7 +316,4 @@ public class DockerService {
     return imageInfo.isEmpty() ? -1 : imageInfo.get().getKey();
   }
 
-  public void func() {
-    System.out.println(runningInstanceMap);
-  }
 }
