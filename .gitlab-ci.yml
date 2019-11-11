@@ -9,12 +9,20 @@ cache:
     - .m2/repository/
     - target/
 
-build:
-  stage: build
+build_square:
+  stage: build_square
   script:
+    - cd square/
     - mvn $MAVEN_CLI_OPTS compile
 
-test:
-  stage: test
+test_square:
+  stage: test_square
   script:
+    - cd square/
     - mvn $MAVEN_CLI_OPTS test
+
+build_square_client:
+  stage: build_square
+  script:
+    - cd square-client/
+    - mvn $MAVEN_CLI_OPTS compile
