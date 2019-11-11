@@ -23,7 +23,7 @@ public class RunningAppEndpointTest {
       .when()
       .post("/app/deploy")
       .then()
-      .statusCode(200)
+      .statusCode(201)
       .assertThat()
       .body(is(expected));
 
@@ -142,7 +142,7 @@ public class RunningAppEndpointTest {
       .when()
       .post("/app/stop")
       .then()
-      .statusCode(200)
+      .statusCode(201)
       .body(is(runningInstance.toJson()));
   }
 

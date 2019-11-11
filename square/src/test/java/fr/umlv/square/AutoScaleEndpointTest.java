@@ -22,7 +22,7 @@ public class AutoScaleEndpointTest {
       .when()
       .post("/auto-scale/update")
       .then()
-      .statusCode(200)
+      .statusCode(201)
       .assertThat()
       .body(is(expected));
 
