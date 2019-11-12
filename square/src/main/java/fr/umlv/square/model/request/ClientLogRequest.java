@@ -1,20 +1,24 @@
 package fr.umlv.square.model.request;
 
+import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+/**
+ * Class which represent an log request send by square-client from each docker instance
+ */
 public class ClientLogRequest {
   @NotNull
   @NotBlank
   private String container;
   @NotNull
   @NotBlank
-  private String message;
+  private List<LogModel> logs;
 
   public ClientLogRequest() {}
 
-  public String getMessage() {
-    return message;
+  public List<LogModel> getLogs() {
+    return logs;
   }
 
   public String getContainer() {
@@ -25,12 +29,12 @@ public class ClientLogRequest {
     this.container = container;
   }
 
-  public void setMessage(String message) {
-    this.message = message;
+  public void setLogs(List<LogModel> logs) {
+    this.logs = logs;
   }
 
   @Override
   public String toString() {
-    return "log request :" + message + " from: " + container;
+    return "log request :" + logs + " from: " + container;
   }
 }

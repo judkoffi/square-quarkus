@@ -1,5 +1,8 @@
 package fr.umlv.square.model;
 
+/**
+ * This class represent model which describe an log object to send to Square API
+ */
 public class LogModel {
   private final String message;
   private final String date;
@@ -13,6 +16,7 @@ public class LogModel {
 
   @Override
   public String toString() {
-    return date + " ;; " + level + " ;; " + message;
+    return "{" + "\"message\":\"" + message + "\", \"date\":\"" + date + "\", \"level\": \"" + level
+        + "\" }";
   }
 }

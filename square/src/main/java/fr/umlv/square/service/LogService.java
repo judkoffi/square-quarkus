@@ -2,7 +2,6 @@ package fr.umlv.square.service;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
@@ -15,11 +14,6 @@ public class LogService {
 
   public void saveLog(List<LogInfo> parsedLogs) {
     parsedLogs.stream().forEach((log) -> logsMap.put(log.getSquareId(), log));
-  }
-
-
-  public Map getLogs() {
-    return logsMap;
   }
 
 }

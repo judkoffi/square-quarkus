@@ -5,7 +5,12 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.List;
+import fr.umlv.square.model.LogModel;
 
+/**
+ * Class use to store information a Square API like host, port and endpoint to send logs
+ */
 public class SquareClient {
   private final String ENDPOINT = "/container-log/send-log";
   private final String squareUrl;
@@ -19,17 +24,24 @@ public class SquareClient {
     this.dockerId = clientConfig.dockerId;
   }
 
-  private String buildJson(String message) {
+  private String buildJson(List<LogModel> logsModels) {
     synchronized (lock) {
-      return "{\"container\":\"" + dockerId + "\", \"message\":\"" + message + "\"}";
+      return "{\"container\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
     }
   }
 
-  public void sendInfoLog(String message) {
+  /**
+   * Method use to send a log message using @{HttpClient} for request
+   * 
+   * @param: logsModels: a @{LogModel} which represent list log to be use for post request
+   * @return: void
+   */
+  public void sendInfoLog(List<LogModel> logsModels) {
     synchronized (lock) {
       var uri = squareUrl + ENDPOINT;
-      var body = buildJson(message);
+      var body = buildJson(logsModels);
       System.out.println(body);
+
 
       var request = HttpRequest
         .newBuilder()

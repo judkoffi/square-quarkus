@@ -3,7 +3,6 @@ package fr.umlv.square.model.response;
 import java.util.Objects;
 
 public class RunningInstanceInfo extends AbstractResponse {
-
   private final String elapsedTime;
 
   public RunningInstanceInfo(int id, String appName, int port, int servicePort,

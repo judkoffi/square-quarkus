@@ -1,13 +1,15 @@
 package fr.umlv.square.client;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
-import java.util.Properties;
 
+/**
+ * Helper class use to read some information like Square host and port from env variables and
+ * container id
+ */
 class ClientConfig {
   final String squareHost;
   final int squarePort;
@@ -25,24 +27,21 @@ class ClientConfig {
     String line = null;
     while ((line = reader.readLine()) != null) {
       builder.append(line);
-      //builder.append(System.getProperty("line.separator"));
+      // builder.append(System.getProperty("line.separator"));
     }
     return builder.toString();
   }
 
-  public static ClientConfig fromFile(String path) throws IOException {
-    var input = new FileInputStream(path);
-    var properties = new Properties();
-    properties.load(input);
-    var host = properties.getProperty("square.host");
-    var port = properties.getProperty("square.port");
-    return new ClientConfig(host, port, "");
-  }
-
-  public static ClientConfig func(){
+  public static ClientConfig func() {
     return new ClientConfig("192.168.43.210", "5050", "zbeubeu");
   }
-  
+
+  /**
+   * Method use to read square's host and port from env variable.
+   * 
+   * @return {@link ClientConfig} contain Square API address, port and current docker id use to
+   *         identified origin of log message
+   */
   public static ClientConfig fromEnv() {
     var processBuilder = new ProcessBuilder();
     var envVariable = processBuilder.environment();

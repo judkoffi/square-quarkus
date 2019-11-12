@@ -4,32 +4,50 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import fr.umlv.square.model.LogModel;
 
+/**
+ * 
+ * Worker class is a class use to manage application start, log reading and log sending to Square
+ * API for persistence
+ *
+ */
 public class Worker {
+  /*
+   * File use to store all of output from runned app
+   */
   private final static String OUTPUT_FILE = "outputLogfile.log";
-  private final static String ERREUR_FILE = "errorLogfile.log";
   private final SquareClient squareClient;
 
-  private int outputReadingIndex;
-  private int erreurReadingIndex;
+  /*
+   * Index use to store offset of log read by prvious thread
+   */
+  private int readingIndex;
 
   public Worker() {
-    this.outputReadingIndex = 0;
-    this.erreurReadingIndex = 0;
-    this.squareClient = new SquareClient(ClientConfig.fromEnv());
+    this.readingIndex = 0;
+    this.squareClient = new SquareClient(ClientConfig.func());
   }
 
   public boolean startApp() {
     var runApp = "java -jar app.jar";
-    var processBuilder = new ProcessBuilder().inheritIO(); // launch processBuilder in same console that runApp command
-    var outputLogFile = new File(OUTPUT_FILE);  
-    var erreurLogFile = new File(ERREUR_FILE);
-    processBuilder.redirectOutput(outputLogFile);   // set the standard output destination of the processBuilder to the file
-    processBuilder.redirectError(erreurLogFile);    // set the standard error destination of the processBuilder to the file
+    /*
+     * launch processBuilder in same console that runApp command
+     */
+    var processBuilder = new ProcessBuilder().inheritIO();
+    var outputLogFile = new File(OUTPUT_FILE);
+
+    /*
+     * set the standard output destination of the processBuilder to the log file
+     */
+    processBuilder.redirectOutput(outputLogFile);
+    /*
+     * set the standard error destination of the processBuilder to the log file
+     */
+    processBuilder.redirectError(outputLogFile);
 
     try {
       var process = processBuilder.command("sh", "-c", runApp).start();
@@ -39,29 +57,36 @@ public class Worker {
     }
   }
 
-  private String parseListLog(List<String> logs) {
-    return logs
-      .stream()
-      .map((mapper) -> LogParser.parseLine(mapper).split(System.getProperty("line.separator"))) // apply the regex to parse the log 
-      .map((mapper) -> new LogModel(mapper[2], mapper[0], mapper[1]).toString()) // create LogModel which defines a log
-      .collect(Collectors.joining(" <> ")); // each log separate by <>
+  private List<LogModel> rawLinesToLogModels(List<String> logs) {
+    /*
+     * Split lines separated by line separator (\n -> linux, \r -> windows) to extract information
+     * for each line
+     */
+    var logsLines = logs.toString().split(System.getProperty("line.separator"));
+
+    return Arrays
+      .stream(logsLines)
+      .map((mapper) -> LogParser.parseLine(mapper))
+      .collect(Collectors.toList());
   }
 
 
   public void doWork() throws IOException {
-    var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());  // list of Stream
-    var newMessageList = list.subList(outputReadingIndex, list.size()); // read from the new part added to the file
-    System.out.println("newMessageList");
-    System.out.println(newMessageList);
-    var msg = parseListLog(newMessageList);
-    System.out.println("msg");
-    System.out.println(msg);
-    outputReadingIndex = list.size();   // to know the actual end of the file
-    new Thread(() -> squareClient.sendInfoLog(msg)).start();
+    /*
+     * Read all lines of output's file using Stream API into a list of String
+     */
+    var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());
+    // List of new raw log read from file before extract information
+    var unreadLogLines = list.subList(readingIndex, list.size());
+    var logsModels = rawLinesToLogModels(unreadLogLines);
+    readingIndex = list.size(); // to know the actual end of the file
+
+    new Thread(() -> squareClient.sendInfoLog(logsModels)).start();
     try {
       Thread.sleep(5000);
     } catch (InterruptedException e) {
       throw new AssertionError();
     }
+
   }
 }

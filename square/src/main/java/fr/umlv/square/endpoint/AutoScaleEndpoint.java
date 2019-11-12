@@ -21,7 +21,7 @@ public class AutoScaleEndpoint {
   @POST
   @Path("/update")
   /**
-   * Road to update the number of instances of an app
+   * Endpoint to update the number of instances of an app
    * 
    * @param request the JSON request
    * @return a Response in JSON
@@ -41,7 +41,7 @@ public class AutoScaleEndpoint {
   @GET
   @Path("/status")
   /**
-   * Road to know what are the actions that the auto scale has to do
+   * Endpoint to know what are the actions that the auto scale has to do
    * 
    * @return a Response in JSON
    */
@@ -56,7 +56,7 @@ public class AutoScaleEndpoint {
   @GET
   @Path("/stop")
   /**
-   * Road to stop auto scale
+   * Endpoint to stop auto scale
    * 
    * @return a Response JSON which give the number of instance handled by auto scale
    */

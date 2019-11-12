@@ -35,7 +35,7 @@ public class LogEndpoint {
   @GET
   @Path("/{time}")
   /**
-   * Road who gives logs since a time given as argument
+   * Endpoint who gives logs since a time given as argument
    * 
    * @param time : the last minutes for which the logs are wanted
    * @return a Response in JSON
@@ -51,7 +51,7 @@ public class LogEndpoint {
   @GET
   @Path("/{time}/{filter}")
   /**
-   * Road who gives logs since a time given as argument
+   * Endpoint who gives logs since a time given as argument
    * 
    * @param time : the last minutes for which the logs are wanted
    * @param filter : a filter by id, app name or an instance name

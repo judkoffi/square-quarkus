@@ -23,19 +23,18 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
-  private final static String DOCKERFILE_TEMPLATE; // DOckerfile use as template for all images
+  private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
   private final static String DOCKERFILES_DIRECTORY;
   private final static int MIN_PORT_NUMBER = 2000;
   private final static int MAX_PORT_NUMBER = 65535;
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
 
-  @ConfigProperty(name = "quarkus.http.host") // read application.properties
+  @ConfigProperty(name = "quarkus.http.host") // read this api host from application.properties
   String squareHost;
 
-  @ConfigProperty(name = "quarkus.http.port") // read application.properties
+  @ConfigProperty(name = "quarkus.http.port") // read this api port from application.properties
   String squarePort;
-
 
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
@@ -70,7 +69,6 @@ public class DockerService {
       .replace("{{3}}", squareHost)
       .replace("{{4}}", squarePort)
       .concat("CMD java -jar client.jar");
-    // .concat("CMD java -jar app.jar&\nCMD java -jar client.jar");
 
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
@@ -94,7 +92,7 @@ public class DockerService {
   }
 
   private int generateId() {
-    var id = 1 + new Random().nextInt(Integer.MAX_VALUE % 500);
+    var id = 1 + new Random().nextInt(Integer.MAX_VALUE);
     if (!runningInstanceMap.containsKey(id))
       return id;
     return generateId();
