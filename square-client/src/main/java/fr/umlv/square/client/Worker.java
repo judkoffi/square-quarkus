@@ -25,12 +25,11 @@ public class Worker {
 
   public boolean startApp() {
     var runApp = "java -jar app.jar";
-    var processBuilder = new ProcessBuilder().inheritIO(); // launch processBuilder in same console
-                                                           // that runApp command
-    var outputLogFile = new File(OUTPUT_FILE);
+    var processBuilder = new ProcessBuilder().inheritIO(); // launch processBuilder in same console that runApp command
+    var outputLogFile = new File(OUTPUT_FILE);  
     var erreurLogFile = new File(ERREUR_FILE);
-    processBuilder.redirectOutput(outputLogFile);
-    processBuilder.redirectError(erreurLogFile);
+    processBuilder.redirectOutput(outputLogFile);   // set the standard output destination of the processBuilder to the file
+    processBuilder.redirectError(erreurLogFile);    // set the standard error destination of the processBuilder to the file
 
     try {
       var process = processBuilder.command("sh", "-c", runApp).start();
@@ -43,17 +42,21 @@ public class Worker {
   private String parseListLog(List<String> logs) {
     return logs
       .stream()
-      .map((mapper) -> LogParser.parseLine(mapper).split(System.getProperty("line.separator")))
-      .map((mapper) -> new LogModel(mapper[2], mapper[0], mapper[1]).toString())
-      .collect(Collectors.joining(" <> "));
+      .map((mapper) -> LogParser.parseLine(mapper).split(System.getProperty("line.separator"))) // apply the regex to parse the log 
+      .map((mapper) -> new LogModel(mapper[2], mapper[0], mapper[1]).toString()) // create LogModel which defines a log
+      .collect(Collectors.joining(" <> ")); // each log separate by <>
   }
 
 
   public void doWork() throws IOException {
-    var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());
-    var newMessageList = list.subList(outputReadingIndex, list.size());
+    var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());  // list of Stream
+    var newMessageList = list.subList(outputReadingIndex, list.size()); // read from the new part added to the file
+    System.out.println("newMessageList");
+    System.out.println(newMessageList);
     var msg = parseListLog(newMessageList);
-    outputReadingIndex = list.size();
+    System.out.println("msg");
+    System.out.println(msg);
+    outputReadingIndex = list.size();   // to know the actual end of the file
     new Thread(() -> squareClient.sendInfoLog(msg)).start();
     try {
       Thread.sleep(5000);

@@ -3,6 +3,7 @@ package fr.umlv.square.client;
 import java.util.regex.Pattern;
 
 public class LogParser {
+  // regex to parse the log
   private final static String TIMESTAMP_REGEX =
       "(?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3})";
   private final static String LEVEL_REGEX = "(?<level>INFO|SEVERE|WARN|TRACE|DEBUG|FATAL)";

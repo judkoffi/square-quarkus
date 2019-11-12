@@ -12,7 +12,7 @@ public class Main {
     var i = 0;
     while (i < 50) {
       try {
-        worker.doWork();
+        worker.doWork();    // launch thread
       } catch (IOException e) {
         e.printStackTrace();
       }
