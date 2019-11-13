@@ -2,6 +2,9 @@ package fr.umlv.square.service;
 
 import java.util.Objects;
 
+/**
+ * Model class use to store information read from docker ps command
+ */
 class ImageInfo {
   final String containerId;
   final String imageName;

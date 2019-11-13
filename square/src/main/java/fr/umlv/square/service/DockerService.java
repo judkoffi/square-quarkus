@@ -24,7 +24,7 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
-  private final static String DOCKERFILES_DIRECTORY;
+  private final static String DOCKERFILES_DIRECTORY = "docker-images/";
   private final static int MIN_PORT_NUMBER = 2000;
   private final static int MAX_PORT_NUMBER = 65535;
   private final ProcessBuilder processBuilder;
@@ -41,7 +41,6 @@ public class DockerService {
         + "COPY apps/{{1}}.jar /app/app.jar\n"
         + "COPY lib-client/square-client.jar /app/client.jar\n" + "ENV SQUARE_HOST={{3}}\n"
         + "ENV SQUARE_PORT={{4}}\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n";
-    DOCKERFILES_DIRECTORY = "docker-images/";
   }
 
   public DockerService() {
@@ -170,7 +169,7 @@ public class DockerService {
   }
 
   private Optional<ImageInfo> runBuiledImage(String appName, int appPort) {
-    var externalPort = generatePort(appPort);
+    var externalPort = generatePort(appPort, Integer.parseInt(squarePort));
     var ranImageId = runImage(appName, appPort, externalPort);
     if (ranImageId == -1)
       return Optional.empty();
@@ -216,6 +215,34 @@ public class DockerService {
     }
   }
 
+  private ImageInfo psLinetoImageInfo(String[] tokens) {
+    var id = Integer.parseInt(tokens[6].split("-")[1]);
+    var ports = tokens[5].split(":");
+
+    var servicePort = Integer.parseInt(ports[1].split("->")[0]);
+    var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
+
+    var timestampString = (tokens[3].trim());
+    var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
+
+    Date date = null;
+    try {
+      date = dateFormatter.parse(timestampString);
+    } catch (ParseException e) {
+
+    }
+
+    var timeTarget = date.getTime();
+    var diff = System.currentTimeMillis() - timeTarget;
+    var calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(diff);
+    var elapsedTime = calendar.get(Calendar.MINUTE) + "m" + calendar.get(Calendar.SECOND) + "s";
+
+    // TODO checked if minute > 60 ???
+    return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime, tokens[4], appPort,
+        servicePort, tokens[6], id);
+  }
+
   private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
     var regex = "([A-Z\\s]+?)($|\\s{2,})";
     var lines = psOutput.trim().split("\n");
@@ -225,36 +252,7 @@ public class DockerService {
       .skip(1)
       .filter(predicate)
       .map((elt) -> elt.split(regex))
-      .map((tokens) ->
-      {
-        var id = Integer.parseInt(tokens[6].split("-")[1]);
-        var ports = tokens[5].split(":");
-
-        var servicePort = Integer.parseInt(ports[1].split("->")[0]);
-        var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
-
-        var timestampString = (tokens[3].trim());
-
-        var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
-
-        Date date = null;
-        try {
-          date = dateFormatter.parse(timestampString);
-        } catch (ParseException e) {
-        }
-
-        var timeTarget = date.getTime();
-        var diff = System.currentTimeMillis() - timeTarget;
-        var calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(diff);
-        var elapsedTime = calendar.get(Calendar.MINUTE) + "m" + calendar.get(Calendar.SECOND) + "s";
-
-        System.out.println("elapsed: " + elapsedTime);
-
-        // TODO checked if minute > 60 ???
-        return new ImageInfo(tokens[0], tokens[1], tokens[2], elapsedTime, tokens[4], appPort,
-            servicePort, tokens[6], id);
-      })
+      .map((tokens) -> psLinetoImageInfo(tokens))
       .collect(Collectors.toList());
   }
 
