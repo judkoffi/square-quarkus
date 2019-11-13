@@ -6,6 +6,9 @@ import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+/**
+ * Model request use to map an sport instance post request as a java object
+ */
 public class StopInstanceRequest {
   @NotNull
   @Positive

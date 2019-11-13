@@ -3,6 +3,10 @@ package fr.umlv.square.model.response;
 import java.util.Objects;
 import java.util.StringJoiner;
 
+/**
+ * Class use to represent as an java object a super class of all Square response. It use to
+ * factoring the common fields of all Square API response model
+ */
 abstract class AbstractResponse {
   private final int id;
   private final int port;
@@ -19,6 +23,11 @@ abstract class AbstractResponse {
     this.dockerInstance = Objects.requireNonNull(dockerInstance);
   }
 
+  /**
+   * Method use to build a JSON string using all fields
+   * 
+   * @return @{String} which represent json content of an @{AbstractResponse}
+   */
   String buildJson() {
     StringJoiner joiner = new StringJoiner(", ");
     joiner.add("\"id\": " + id);
@@ -40,6 +49,13 @@ abstract class AbstractResponse {
   public String getDockerInstance() {
     return dockerInstance;
   }
+
+
+  /**
+   * Method use to finalise build of JSON string using all fields
+   * 
+   * @return @{String} which represent json string of an @{AbstractResponse}
+   */
 
   public String toJson() {
     return "{" + buildJson() + "}";

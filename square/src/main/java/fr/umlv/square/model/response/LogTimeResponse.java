@@ -2,6 +2,9 @@ package fr.umlv.square.model.response;
 
 import java.util.Objects;
 
+/**
+ * Class use to represent a JSON response after an log request
+ */
 public class LogTimeResponse extends AbstractResponse {
   private final String message;
   private final String timestamp;

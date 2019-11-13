@@ -4,10 +4,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+/**
+ * Model request use to map an deploy post request as a java object
+ */
 public class DeployInstanceRequest {
   @NotNull
   @NotBlank
-  @Pattern(regexp = "[^\\:]+:[0-9]+") // app must match with regexp
+  @Pattern(regexp = "[^\\:]+:[0-9]+") // app must match with regexp, ex: appname:port
   private String app;
 
   public DeployInstanceRequest() {}

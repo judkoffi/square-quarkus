@@ -7,6 +7,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+/**
+ * 
+ * Endpoint use to know if API is alive or not
+ *
+ */
 @Path("/healthcheck")
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthCheckEndpoint {

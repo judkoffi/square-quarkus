@@ -1,5 +1,8 @@
 package fr.umlv.square.model.request;
 
+/**
+ * Model class to map LogModel object send by square client app
+ */
 public class LogModel {
   private String message;
   private String date;
