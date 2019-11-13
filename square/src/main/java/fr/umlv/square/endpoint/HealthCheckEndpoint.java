@@ -7,7 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/health")
+@Path("/healthcheck")
 @Produces(MediaType.APPLICATION_JSON)
 public class HealthCheckEndpoint {
 

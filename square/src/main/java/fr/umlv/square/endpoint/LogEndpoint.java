@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fr.umlv.square.model.response.LogTimeResponse;
+import fr.umlv.square.util.SquareHttpStatusCode;
 
 @Path("/logs")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,7 +43,10 @@ public class LogEndpoint {
    */
   public Response list(@PathParam("time") String time) {
     if (time == null || !isNumeric(time))
-      return Response.status(400).entity("Invalid time value").build();
+      return Response
+        .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
+        .entity("Invalid time value")
+        .build();
 
     var result = logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();
@@ -59,7 +63,10 @@ public class LogEndpoint {
    */
   public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
     if (time == null || filter == null || !isNumeric(time))
-      return Response.status(400).entity("Invalid time value").build();
+      return Response
+        .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
+        .entity("Invalid time value")
+        .build();
 
     var result = logsFiltedByTime(time)
       .filter(getPredicate(filter))
