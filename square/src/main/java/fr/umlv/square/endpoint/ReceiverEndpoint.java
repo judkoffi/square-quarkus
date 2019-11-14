@@ -25,7 +25,6 @@ public class ReceiverEndpoint {
   @Inject
   DockerService dockerService;
 
-
   /**
    * Endpoint to receive log from square-client lib store insde each docker instance
    * 
@@ -42,8 +41,7 @@ public class ReceiverEndpoint {
 
     var entities = logs
       .stream()
-      .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage()))
-      .collect(Collectors.toList());
+      .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage(), "-1", "-1")).collect(Collectors.toList());
 
     logService.saveLogs(entities);
   }

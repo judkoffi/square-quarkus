@@ -6,7 +6,6 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity
 public class LogEntity extends PanacheEntity {
-
   @Column(name = "squareId")
   private int squareId;
 
@@ -19,13 +18,22 @@ public class LogEntity extends PanacheEntity {
   @Column(name = "level")
   private String level;
 
+  @Column(name = "dockerinstance")
+  private String dockerInstance;
+
+  @Column(name = "appname")
+  private String appName;
+
   public LogEntity() {}
 
-  public LogEntity(int squareId, String date, String level, String message) {
+  public LogEntity(int squareId, String date, String level, String message, String dockerInstance,
+      String appName) {
     this.squareId = squareId;
     this.date = date;
     this.level = level;
     this.message = message;
+    this.dockerInstance = dockerInstance;
+    this.appName = appName;
   }
 
   public int getId() {

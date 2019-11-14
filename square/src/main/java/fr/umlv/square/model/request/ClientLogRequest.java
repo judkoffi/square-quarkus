@@ -13,11 +13,11 @@ public class ClientLogRequest {
   private String container;
   @NotNull
   @NotBlank
-  private List<LogModel> logs;
+  private List<ReceivedLogModel> logs;
 
   public ClientLogRequest() {}
 
-  public List<LogModel> getLogs() {
+  public List<ReceivedLogModel> getLogs() {
     return logs;
   }
 
@@ -29,7 +29,7 @@ public class ClientLogRequest {
     this.container = container;
   }
 
-  public void setLogs(List<LogModel> logs) {
+  public void setLogs(List<ReceivedLogModel> logs) {
     this.logs = logs;
   }
 

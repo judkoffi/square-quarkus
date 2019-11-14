@@ -216,7 +216,8 @@ public class DockerService {
   }
 
   /**
-   * Extract each token of the line 
+   * Extract each token of the line
+   * 
    * @param tokens
    * @return
    */
@@ -250,12 +251,13 @@ public class DockerService {
 
   /**
    * Extract one line of the ps command
+   * 
    * @param psOutput
    * @param predicate
    * @return
    */
   private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
-    var regex = "([A-Z\\s]+?)($|\\s{2,})"; 
+    var regex = "([A-Z\\s]+?)($|\\s{2,})";
     var lines = psOutput.trim().split("\n");
 
     return Arrays

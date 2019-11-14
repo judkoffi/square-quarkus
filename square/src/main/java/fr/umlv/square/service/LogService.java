@@ -22,8 +22,8 @@ public class LogService {
   }
 
   @Transactional
-  public void saveLogs(List<LogEntity> logs) {
-    databaseRepository.persist(logs.stream());
+  public void saveLogs(List<LogEntity> entities) {
+    databaseRepository.persist(entities.stream());
   }
 
   public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
