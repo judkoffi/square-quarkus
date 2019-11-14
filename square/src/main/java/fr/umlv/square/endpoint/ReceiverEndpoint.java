@@ -1,12 +1,16 @@
 package fr.umlv.square.endpoint;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import fr.umlv.square.model.request.ClientLogRequest;
+import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.service.LogService;
 
@@ -21,6 +25,7 @@ public class ReceiverEndpoint {
   @Inject
   DockerService dockerService;
 
+
   /**
    * Endpoint to receive log from square-client lib store insde each docker instance
    * 
@@ -32,11 +37,21 @@ public class ReceiverEndpoint {
     var squareId = dockerService.findSquareIdFromContainerId(request.getContainer());
     var logs = request.getLogs();
 
-    System.out.println(logs + "for square id " + squareId);
-
     if (logs.isEmpty())
       return;
 
+    var entities = logs
+      .stream()
+      .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage()))
+      .collect(Collectors.toList());
+
+    logService.saveLogs(entities);
+  }
+
+  @GET
+  @Path("/logs/")
+  public List<LogEntity> list(ClientLogRequest request) {
+    return logService.getAllLogs();
   }
 
 }
