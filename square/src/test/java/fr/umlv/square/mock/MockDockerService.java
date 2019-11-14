@@ -14,7 +14,7 @@ public class MockDockerService extends DockerService {
 
   @Override
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
-    var response = new DeployResponse(1, appName, appPort, 10000, appName + "_" + appPort);
+    var response = new DeployResponse(4, appName, appPort, 10000, appName + "_" + appPort);
     return Optional.of(response);
   }
 

@@ -28,8 +28,8 @@ public class ReceiverEndpoint {
    */
   @POST
   @Path("/send-log/")
-  public void kawaii(ClientLogRequest request) {
-    var squareId = dockerService.findIdFromContainerId(request.getContainer());
+  public void processReceivedLog(ClientLogRequest request) {
+    var squareId = dockerService.findSquareIdFromContainerId(request.getContainer());
     var logs = request.getLogs();
 
     System.out.println(logs + "for square id " + squareId);

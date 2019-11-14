@@ -26,7 +26,7 @@ public class AutoScaleEndpoint {
    * @param request the JSON request
    * @return a Response in JSON
    */
-  public Response update(Map<String, Integer> request) {
+  public Response update(Map<String, Integer> request) {    // use a map because we don't know the name of the key
     var jsonBuilder = JsonbBuilder.create();
     var map = request
       .entrySet()

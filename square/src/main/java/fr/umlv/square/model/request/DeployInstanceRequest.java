@@ -19,7 +19,7 @@ public class DeployInstanceRequest {
     return app;
   }
 
-  public void setApp(String app) {
+  public void setApp(String app) {  // because app is private
     this.app = app;
   }
 

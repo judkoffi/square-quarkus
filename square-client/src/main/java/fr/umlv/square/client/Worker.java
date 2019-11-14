@@ -10,10 +10,8 @@ import java.util.stream.Collectors;
 import fr.umlv.square.model.LogModel;
 
 /**
- * 
  * Worker class is a class use to manage application start, log reading and log sending to Square
  * API for persistence
- *
  */
 public class Worker {
   /*
@@ -32,6 +30,11 @@ public class Worker {
     this.squareClient = new SquareClient(ClientConfig.func());
   }
 
+  /**
+   * Start the app app.jar in the container
+   * 
+   * @return true if the app has started correctly and false otherwise
+   */
   public boolean startApp() {
     var runApp = "java -jar app.jar";
     /*
@@ -63,7 +66,6 @@ public class Worker {
      * for each line
      */
     var logsLines = logs.toString().split(System.getProperty("line.separator"));
-
     return Arrays
       .stream(logsLines)
       .map((mapper) -> LogParser.parseLine(mapper))
@@ -73,13 +75,14 @@ public class Worker {
 
   public void doWork() throws IOException {
     /*
-     * Read all lines of output's file using Stream API into a list of String
+     * Read all lines of output's file using Stream API into a list of String and skip previous
+     * readed lines
      */
-    var list = Files.lines(Path.of(OUTPUT_FILE)).collect(Collectors.toList());
+    var list = Files.lines(Path.of(OUTPUT_FILE)).skip(readingIndex).collect(Collectors.toList());
     // List of new raw log read from file before extract information
-    var unreadLogLines = list.subList(readingIndex, list.size());
-    var logsModels = rawLinesToLogModels(unreadLogLines);
+    var logsModels = rawLinesToLogModels(list);
     readingIndex = list.size(); // to know the actual end of the file
+    //TODO : if log failed -> retry
 
     new Thread(() -> squareClient.sendInfoLog(logsModels)).start();
     try {
@@ -87,6 +90,5 @@ public class Worker {
     } catch (InterruptedException e) {
       throw new AssertionError();
     }
-
   }
 }

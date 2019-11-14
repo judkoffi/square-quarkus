@@ -168,7 +168,7 @@ public class DockerService {
     }
   }
 
-  private Optional<ImageInfo> runBuiledImage(String appName, int appPort) {
+  private Optional<ImageInfo> runBuildedImage(String appName, int appPort) {
     var externalPort = generatePort(appPort, Integer.parseInt(squarePort));
     var ranImageId = runImage(appName, appPort, externalPort);
     if (ranImageId == -1)
@@ -197,7 +197,7 @@ public class DockerService {
           return Optional.empty();
       }
 
-      var imageInfo = runBuiledImage(appName, appPort);
+      var imageInfo = runBuildedImage(appName, appPort);
       if (imageInfo.isEmpty()) {
         System.out.println("run empty");
         return Optional.empty();
@@ -215,6 +215,11 @@ public class DockerService {
     }
   }
 
+  /**
+   * Extract each token of the line 
+   * @param tokens
+   * @return
+   */
   private ImageInfo psLinetoImageInfo(String[] tokens) {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
@@ -243,8 +248,14 @@ public class DockerService {
         servicePort, tokens[6], id);
   }
 
+  /**
+   * Extract one line of the ps command
+   * @param psOutput
+   * @param predicate
+   * @return
+   */
   private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
-    var regex = "([A-Z\\s]+?)($|\\s{2,})";
+    var regex = "([A-Z\\s]+?)($|\\s{2,})"; 
     var lines = psOutput.trim().split("\n");
 
     return Arrays
@@ -303,7 +314,7 @@ public class DockerService {
     }
   }
 
-  public int findIdFromContainerId(String containerId) {
+  public int findSquareIdFromContainerId(String containerId) {
     var imageInfo = runningInstanceMap
       .entrySet()
       .stream()

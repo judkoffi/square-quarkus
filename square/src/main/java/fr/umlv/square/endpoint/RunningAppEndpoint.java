@@ -41,7 +41,7 @@ public class RunningAppEndpoint {
     if (!violations.isEmpty()) {
       return Response
         .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
-        .entity("Invalid post body")
+        .entity("Invalid deploy post body")
         .build();
     }
 

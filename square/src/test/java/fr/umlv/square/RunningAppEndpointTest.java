@@ -15,7 +15,7 @@ public class RunningAppEndpointTest {
   @Test
   public void testDeployEndpoint() {
     var expected =
-        "{\"id\": 1, \"app\": \"totoapp\", \"port\": 5000, \"service-docker\": 10000, \"docker-instance\":\"totoapp_5000\"}";
+        "{\"id\": 4, \"app\": \"totoapp\", \"port\": 5000, \"service-docker\": 10000, \"docker-instance\":\"totoapp_5000\"}";
 
     given()
       .contentType(ContentType.JSON)
