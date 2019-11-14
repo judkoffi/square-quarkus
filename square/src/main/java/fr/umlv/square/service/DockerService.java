@@ -325,4 +325,22 @@ public class DockerService {
     return imageInfo.isEmpty() ? -1 : imageInfo.get().getKey();
   }
 
+  public String findDockerInstanceFromContainerId(String containerId) {
+    var imageInfo = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter((p) -> p.getValue().containerId.equals(containerId))
+      .findFirst();
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().dockerInstance;
+  }
+
+  public String findAppNameFromContainerId(String containerId) {
+    var imageInfo = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter((p) -> p.getValue().containerId.equals(containerId))
+      .findFirst();
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().imageName;
+  }
+
 }

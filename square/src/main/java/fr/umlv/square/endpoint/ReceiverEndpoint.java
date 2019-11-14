@@ -34,14 +34,15 @@ public class ReceiverEndpoint {
   @Path("/send-log/")
   public void processReceivedLog(ClientLogRequest request) {
     var squareId = dockerService.findSquareIdFromContainerId(request.getContainer());
-    var logs = request.getLogs();
+    var dockerInstance = dockerService.findDockerInstanceFromContainerId(request.getContainer());
+    var appName = dockerService.findAppNameFromContainerId(request.getContainer());
 
+    var logs = request.getLogs();
     if (logs.isEmpty())
       return;
 
-    var entities = logs
-      .stream()
-      .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage(), "-1", "-1")).collect(Collectors.toList());
+    var entities =
+        logs.stream().map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage(), dockerInstance, appName)).collect(Collectors.toList());
 
     logService.saveLogs(entities);
   }

@@ -36,7 +36,7 @@ public class LogEntity extends PanacheEntity {
     this.appName = appName;
   }
 
-  public int getId() {
+  public int getSquareId() {
     return squareId;
   }
 
@@ -52,8 +52,12 @@ public class LogEntity extends PanacheEntity {
     return level;
   }
 
-  public void setId(int id) {
-    this.squareId = id;
+  public String getAppName() {
+    return appName;
+  }
+
+  public String getDockerInstance() {
+    return dockerInstance;
   }
 
 }
