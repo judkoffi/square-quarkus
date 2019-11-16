@@ -62,4 +62,10 @@ public class LogEntity extends PanacheEntity {
     return dockerInstance;
   }
 
+  @Override
+  public String toString() {
+    return "LogEntity [squareId=" + squareId + ", message=" + message + ", date=" + date
+        + ", level=" + level + ", dockerInstance=" + dockerInstance + ", appName=" + appName + "]";
+  }
+
 }

@@ -41,16 +41,11 @@ public class ReceiverEndpoint {
     if (logs.isEmpty())
       return;
 
-    System.out.println("logs from: " + squareId);
-    System.out.println("nblogs: " + logs.size());
-
     var entities = logs
       .stream()//
       .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage(), originInstance, appName)).collect(Collectors.toList());
 
-    System.out.println(entities);
-
-    // logService.saveLogs(entities);
+    logService.saveLogs(entities);
   }
 
   @GET

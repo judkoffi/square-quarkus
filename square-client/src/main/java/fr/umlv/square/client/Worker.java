@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import fr.umlv.square.model.LogModel;
@@ -66,18 +65,18 @@ public class Worker {
     }
   }
 
-  private List<LogModel> rawLinesToLogModels(List<String> logs) {
+  private List<LogModel> rawLinesToLogModels(List<String> list) {
     synchronized (lock) {
       /*
        * Split lines separated by line separator (\n -> linux, \r -> windows) to extract information
        * for each line
        */
-      var logsLines = logs.toString().split(System.getProperty("line.separator"));
-      return Arrays
-        .stream(logsLines)
+      return list
+        .stream()
         .map((mapper) -> LogParser.parseLine(mapper))
         .filter((p) -> !p.getMessage().isBlank() && !p.getMessage().isEmpty())
         .collect(Collectors.toList());
+
     }
   }
 
@@ -89,8 +88,6 @@ public class Worker {
        * readed lines
        */
       var list = Files.lines(Path.of(OUTPUT_FILE)).skip(readingIndex).collect(Collectors.toList());
-      System.out.println("read index: " + readingIndex);
-      System.out.println("list size: " + list.size());
       // List of new raw log read from file before extract information
       var logsModels = rawLinesToLogModels(list);
       /*
