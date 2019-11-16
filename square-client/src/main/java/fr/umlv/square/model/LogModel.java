@@ -14,6 +14,10 @@ public class LogModel {
     this.level = level;
   }
 
+  public String getMessage() {
+    return message;
+  }
+
   @Override
   public String toString() {
     return "{" + "\"message\":\"" + message + "\", \"date\":\"" + date + "\", \"level\": \"" + level

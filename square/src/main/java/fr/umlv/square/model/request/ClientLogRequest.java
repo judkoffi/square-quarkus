@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 public class ClientLogRequest {
   @NotNull
   @NotBlank
-  private String container;
+  private String dockerInstance;
   @NotNull
   @NotBlank
   private List<ReceivedLogModel> logs;
@@ -21,12 +21,12 @@ public class ClientLogRequest {
     return logs;
   }
 
-  public String getContainer() {
-    return container;
+  public String getDockerInstance() {
+    return dockerInstance;
   }
 
-  public void setContainer(String container) {
-    this.container = container;
+  public void setDockerInstance(String dockerInstance) {
+    this.dockerInstance = dockerInstance;
   }
 
   public void setLogs(List<ReceivedLogModel> logs) {
@@ -35,6 +35,6 @@ public class ClientLogRequest {
 
   @Override
   public String toString() {
-    return "log request :" + logs + " from: " + container;
+    return "log request :" + logs + " from: " + dockerInstance;
   }
 }

@@ -19,10 +19,18 @@ public class Main {
     // TODO use an infinite loop
     var i = 0;
     while (i < 50) {
+      new Thread(() ->
+      {
+        try {
+          worker.doWork();
+        } catch (IOException e) {
+          throw new AssertionError(e);
+        }
+      }).start();
       try {
-        worker.doWork(); // launch thread
-      } catch (IOException e) {
-        throw new AssertionError(e);
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+        return;
       }
       i++;
     }

@@ -2,6 +2,7 @@ package fr.umlv.square.orm;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import org.hibernate.annotations.Type;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 @Entity
@@ -10,6 +11,7 @@ public class LogEntity extends PanacheEntity {
   private int squareId;
 
   @Column(name = "message")
+  @Type(type = "text")
   private String message;
 
   @Column(name = "date")

@@ -31,7 +31,7 @@ public class SquareClient {
    */
   private String buildJson(List<LogModel> logsModels) {
     synchronized (lock) {
-      return "{\"container\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
+      return "{\"dockerInstance\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
     }
   }
 

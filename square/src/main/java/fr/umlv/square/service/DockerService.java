@@ -129,7 +129,8 @@ public class DockerService {
   }
 
   private PairPidId runImage(String imageName, int appPort, int servicePort) {
-    var id = generateId();
+    //TODO: Remove modulo
+    var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
 
     var cmd = "docker run -p " + servicePort + ":" + appPort + " --name " + uniqueName
