@@ -21,19 +21,21 @@ class ClientConfig {
     this.dockerId = Objects.requireNonNull(dockerId);
   }
 
+  /**
+   * Helper method use to read output of command from STDOUT
+   * 
+   * @param outputStream: process STDOUT stream
+   * @return {@String} which represent display in output console
+   * @throws IOException
+   */
   private static String getOutputOfCommand(InputStream outputStream) throws IOException {
     var reader = new BufferedReader(new InputStreamReader(outputStream));
     var builder = new StringBuilder();
     String line = null;
     while ((line = reader.readLine()) != null) {
       builder.append(line);
-      // builder.append(System.getProperty("line.separator"));
     }
     return builder.toString();
-  }
-
-  public static ClientConfig func() {
-    return new ClientConfig("192.168.43.210", "5050", "zbeubeu");
   }
 
   /**
@@ -50,7 +52,7 @@ class ClientConfig {
       var process = processBuilder.command("sh", "-c", "hostname").start();
       var exitStatus = process.waitFor();
       if (exitStatus != 0) {
-        return null;
+        return ClientConfig.defaultConfig();
       }
       var outputStream = process.getInputStream();
       hostname = getOutputOfCommand(outputStream).split("line.separator")[0];
@@ -61,6 +63,11 @@ class ClientConfig {
     var port = envVariable.get("SQUARE_PORT");
     return new ClientConfig(host, port, hostname);
   }
+
+  public static ClientConfig defaultConfig() {
+    return new ClientConfig("0.0.0.0", "5050", "-1");
+  }
+
 
   @Override
   public String toString() {

@@ -10,6 +10,10 @@ public class Main {
     var worker = new Worker();
     if (!worker.startApp()) {
       System.err.println("App not start");
+      /*
+       * kill main app in docker instance will provoke instance kill and we don't need to use a
+       * specicial handle to process if some fatal kill app
+       */
       System.exit(-1);
     }
     // TODO use an infinite loop
@@ -18,7 +22,7 @@ public class Main {
       try {
         worker.doWork(); // launch thread
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new AssertionError(e);
       }
       i++;
     }

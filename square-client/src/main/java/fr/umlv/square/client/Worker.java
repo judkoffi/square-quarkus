@@ -27,7 +27,7 @@ public class Worker {
 
   public Worker() {
     this.readingIndex = 0;
-    this.squareClient = new SquareClient(ClientConfig.func());
+    this.squareClient = new SquareClient(ClientConfig.fromEnv());
   }
 
   /**
@@ -82,7 +82,7 @@ public class Worker {
     // List of new raw log read from file before extract information
     var logsModels = rawLinesToLogModels(list);
     readingIndex = list.size(); // to know the actual end of the file
-    //TODO : if log failed -> retry
+    // TODO : if log failed -> retry
 
     new Thread(() -> squareClient.sendInfoLog(logsModels)).start();
     try {
