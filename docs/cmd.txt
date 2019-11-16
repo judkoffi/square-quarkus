@@ -1,1 +1,21 @@
-docker build -f docker-images/Dockerfile.template -t helloapp apps/docker run -p 8080:8080 helloapp#Run logs dbdocker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name square_logs_db -e POSTGRES_USER=square -e POSTGRES_PASSWORD=kawaii -e POSTGRES_DB=square_logs -p 5432:5432 postgres:10.5docker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name square_logs_db -e POSTGRES_USER=derby -e POSTGRES_PASSWORD=derby -e POSTGRES_DB=square_logs -p 5432:5432 postgres:10.5
+
+--build an docker image
+docker build -f <path to docker file> -t <image name> <context path>
+ex:
+docker build -f docker-images/Dockerfile.template -t helloapp apps/
+
+--run odkcer image with specified port
+docker run -p 8080:8080 helloapp
+
+#Run logs db
+docker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name square_logs_db -e POSTGRES_USER=square -e POSTGRES_PASSWORD=kawaii -e POSTGRES_DB=square_logs -p 5432:5432 postgres:10.5
+
+
+#derby db
+docker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name square_logs_db -e POSTGRES_USER=derby -e POSTGRES_PASSWORD=derby -e POSTGRES_DB=square_logs -p 5432:5432 postgres:10.5
+
+
+
+-> lib client
+-- package lib client jar
+mvn clean compile assembly:single
