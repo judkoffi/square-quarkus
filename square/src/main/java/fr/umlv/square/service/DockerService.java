@@ -133,7 +133,7 @@ public class DockerService {
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
 
-    var cmd = "docker run -p " + servicePort + ":" + appPort + " --name " + uniqueName
+    var cmd = "docker run --rm -p " + servicePort + ":" + appPort + " --name " + uniqueName
         + " --hostname=" + uniqueName + " " + imageName;
 
     try {
@@ -289,6 +289,8 @@ public class DockerService {
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.dockerInstance;
+    
+    //TODO: Remove entry from hashmap
 
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();

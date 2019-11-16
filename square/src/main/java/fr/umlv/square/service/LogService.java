@@ -29,5 +29,6 @@ public class LogService {
   public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
     return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
   }
+  
 
 }
