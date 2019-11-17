@@ -9,6 +9,9 @@ import javax.transaction.Transactional;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.orm.LogRepository;
 
+/**
+ * Class use as interface between database repository to have access of date store in repository
+ */
 @ApplicationScoped
 public class LogService {
 
@@ -29,6 +32,6 @@ public class LogService {
   public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
     return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
   }
-  
+
 
 }

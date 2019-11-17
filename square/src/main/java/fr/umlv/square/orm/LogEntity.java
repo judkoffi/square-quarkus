@@ -5,6 +5,10 @@ import javax.persistence.Entity;
 import org.hibernate.annotations.Type;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
+/**
+ * This class represent a model of logs tuples in database stored in database table
+ */
+
 @Entity
 public class LogEntity extends PanacheEntity {
   @Column(name = "squareId")

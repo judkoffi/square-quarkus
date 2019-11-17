@@ -28,6 +28,7 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
   private final static String DOCKERFILES_DIRECTORY = "docker-images/";
+  private final static int HOUR_MINUTE_VALUE = 60;
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
 
@@ -129,7 +130,7 @@ public class DockerService {
   }
 
   private PairPidId runImage(String imageName, int appPort, int servicePort) {
-    //TODO: Remove modulo
+    // TODO: Remove modulo
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
 
@@ -202,6 +203,8 @@ public class DockerService {
       var info = imageInfo.get();
       runningInstanceMap.put(info.squareId, info);
 
+      System.out.println(info);
+
       return Optional
         .of(new DeployResponse(info.squareId, appName, appPort, info.servicePort,
             info.dockerInstance));
@@ -209,6 +212,14 @@ public class DockerService {
     } catch (AssertionError e) {
       return Optional.empty();
     }
+  }
+
+  private String buildElapsedTime(long diff) {
+    var calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(diff);
+    var hoursToMinutes = calendar.get(Calendar.HOUR_OF_DAY) * HOUR_MINUTE_VALUE;
+    var minutes = hoursToMinutes + calendar.get(Calendar.MINUTE);
+    return minutes + "m" + calendar.get(Calendar.SECOND) + "s";
   }
 
   /**
@@ -220,10 +231,8 @@ public class DockerService {
   private ImageInfo psLinetoImageInfo(String[] tokens) {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
-
     var servicePort = Integer.parseInt(ports[1].split("->")[0]);
     var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
-
     var timestampString = (tokens[3].trim());
     var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
 
@@ -234,14 +243,9 @@ public class DockerService {
       throw new AssertionError(e);
     }
 
-    var timeTarget = date.getTime();
-    var diff = System.currentTimeMillis() - timeTarget;
-    var calendar = Calendar.getInstance();
-    calendar.setTimeInMillis(diff);
-    var elapsedTime = calendar.get(Calendar.MINUTE) + "m" + calendar.get(Calendar.SECOND) + "s";
+    var diff = System.currentTimeMillis() - date.getTime();
 
-    // TODO checked if minute > 60 ???
-    return new ImageInfo(tokens[1], elapsedTime, appPort, servicePort, tokens[6], id);
+    return new ImageInfo(tokens[1], buildElapsedTime(diff), appPort, servicePort, tokens[6], id);
   }
 
   /**
@@ -289,8 +293,6 @@ public class DockerService {
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.dockerInstance;
-    
-    //TODO: Remove entry from hashmap
 
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
@@ -302,6 +304,8 @@ public class DockerService {
 
       var consoleOutput = getOutputOfCommand(outputStream);
       System.out.println(consoleOutput);
+
+      runningInstanceMap.remove(key);
 
       return Optional
         .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,

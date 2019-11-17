@@ -49,8 +49,6 @@ public class RunningAppEndpoint {
 
     var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "{}";
 
-    System.out.println(deployResponse);
-
     return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity(entityBody).build();
   }
 
