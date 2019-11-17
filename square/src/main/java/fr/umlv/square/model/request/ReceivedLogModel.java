@@ -3,14 +3,14 @@ package fr.umlv.square.model.request;
 /**
  * Model class to map LogModel object send by square client app
  */
-public class LogModel {
+public class ReceivedLogModel {
   private String message;
   private String date;
   private String level;
 
-  public LogModel() {}
+  public ReceivedLogModel() {}
 
-  public LogModel(String message, String date, String level) {
+  public ReceivedLogModel(String message, String date, String level) {
     this.message = message;
     this.date = date;
     this.level = level;

@@ -41,15 +41,13 @@ public class RunningAppEndpoint {
     if (!violations.isEmpty()) {
       return Response
         .status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE)
-        .entity("Invalid deploy post body")
+        .entity("Invalid post body")
         .build();
     }
 
     var deployResponse = dockerService.runContainer(request.getAppName(), request.getPort());
 
     var entityBody = deployResponse.isPresent() ? deployResponse.get().toJson() : "{}";
-
-    System.out.println(deployResponse);
 
     return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity(entityBody).build();
   }

@@ -1,19 +1,37 @@
 package fr.umlv.square.service;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.transaction.Transactional;
+import fr.umlv.square.orm.LogEntity;
+import fr.umlv.square.orm.LogRepository;
 
+/**
+ * Class use as interface between database repository to have access of date store in repository
+ */
 @ApplicationScoped
 public class LogService {
-  private final HashMap<Integer, LogInfo> logsMap;
 
-  public LogService() {
-    this.logsMap = new HashMap<Integer, LogInfo>();
+  @Inject
+  LogRepository databaseRepository;
+
+  public LogService() {}
+
+  public List<LogEntity> getAllLogs() {
+    return databaseRepository.listAll();
   }
 
-  public void saveLog(List<LogInfo> parsedLogs) {
-    parsedLogs.stream().forEach((log) -> logsMap.put(log.getSquareId(), log));
+  @Transactional
+  public void saveLogs(List<LogEntity> entities) {
+    databaseRepository.persist(entities.stream());
   }
+
+  public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
+    return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
+  }
+
 
 }

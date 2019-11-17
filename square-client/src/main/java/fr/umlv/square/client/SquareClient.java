@@ -24,9 +24,14 @@ public class SquareClient {
     this.dockerId = clientConfig.dockerId;
   }
 
+  /**
+   * 
+   * @param logsModels: list of logs to to send
+   * @return {@String} with represent json body to to send to Square API
+   */
   private String buildJson(List<LogModel> logsModels) {
     synchronized (lock) {
-      return "{\"container\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
+      return "{\"dockerInstance\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
     }
   }
 
@@ -39,7 +44,7 @@ public class SquareClient {
   public void sendInfoLog(List<LogModel> logsModels) {
     synchronized (lock) {
       var uri = squareUrl + ENDPOINT;
-      var body = buildJson(logsModels); 
+      var body = buildJson(logsModels);
       System.out.println(body);
 
       var request = HttpRequest

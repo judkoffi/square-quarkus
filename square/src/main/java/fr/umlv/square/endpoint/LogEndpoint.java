@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,8 +14,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import fr.umlv.square.model.response.LogTimeResponse;
+import fr.umlv.square.service.LogService;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
 @Path("/logs")
@@ -23,6 +23,9 @@ import fr.umlv.square.util.SquareHttpStatusCode;
 @Consumes(MediaType.APPLICATION_JSON)
 public class LogEndpoint {
 
+  @Inject
+  LogService logService;
+  
   private final static ArrayList<LogTimeResponse> data;
 
   static {
