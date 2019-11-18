@@ -214,6 +214,9 @@ public class DockerService {
     }
   }
 
+  /*
+   * TODO: FIX Hours adding to minutes
+   */
   private String buildElapsedTime(long diff) {
     var calendar = Calendar.getInstance();
     calendar.setTimeInMillis(diff);
@@ -290,6 +293,11 @@ public class DockerService {
     }
   }
 
+  /*
+   * 
+   * TODO: Fix elapsed-time field bug Actual "elapsed-time": "2019-11-18 05:40:41.459" but must be
+   * XmYs Improve implement of buildElapsedTime to use this method to compute elasped time
+   */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.dockerInstance;

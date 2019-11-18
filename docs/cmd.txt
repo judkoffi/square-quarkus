@@ -15,7 +15,3 @@ docker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name squ
 docker run --ulimit memlock=-1:-1 -it --rm=true --memory-swappiness=0 --name square_logs_db -e POSTGRES_USER=derby -e POSTGRES_PASSWORD=derby -e POSTGRES_DB=square_logs -p 5432:5432 postgres:10.5
 
 
-
--> lib client
--- package lib client jar
-mvn clean compile assembly:single
