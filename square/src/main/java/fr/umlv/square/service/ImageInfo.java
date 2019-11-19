@@ -7,14 +7,14 @@ import java.util.Objects;
  */
 class ImageInfo {
   final String imageName;
-  final String created;
+  final long created;
   final int appPort;
   final int servicePort;
   final String dockerInstance;
   final int squareId;
 
-  public ImageInfo(String image, String created, int appPort, int servicePort,
-      String dockerInstance, int squareId) {
+  public ImageInfo(String image, long created, int appPort, int servicePort, String dockerInstance,
+      int squareId) {
     this.imageName = image;
     this.created = created;
     this.appPort = appPort;
@@ -33,9 +33,9 @@ class ImageInfo {
     if (!(obj instanceof ImageInfo))
       return false;
     ImageInfo info = (ImageInfo) obj;
-    return info.squareId == squareId && info.appPort == appPort && info.servicePort == servicePort
-        && info.dockerInstance.equals(dockerInstance) && info.imageName.equals(imageName)
-        && info.created.equals(created);
+    return info.squareId == squareId && info.created == created && info.appPort == appPort
+        && info.servicePort == servicePort && info.dockerInstance.equals(dockerInstance)
+        && info.imageName.equals(imageName);
   }
 
   @Override

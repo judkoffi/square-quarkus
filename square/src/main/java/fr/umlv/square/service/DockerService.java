@@ -2,7 +2,6 @@ package fr.umlv.square.service;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -121,8 +120,8 @@ public class DockerService {
 
     var dockerInstance = appName + "-" + ranImageId.id;
     return Optional
-      .of(new ImageInfo(appName, new Timestamp(System.currentTimeMillis()).toString(), appPort,
-          servicePort, dockerInstance, ranImageId.id));
+      .of(new ImageInfo(appName, System.currentTimeMillis(), appPort, servicePort, dockerInstance,
+          ranImageId.id));
   }
 
   /**
@@ -190,7 +189,7 @@ public class DockerService {
 
     var diff = System.currentTimeMillis() - date.getTime();
 
-    return new ImageInfo(tokens[1], buildElapsedTime(diff), appPort, servicePort, tokens[6], id);
+    return new ImageInfo(tokens[1], diff, appPort, servicePort, tokens[6], id);
   }
 
   /**
@@ -225,17 +224,16 @@ public class DockerService {
 
     List<ImageInfo> imageInfos = parseDockerPs(cmdResult, (p) -> true);
 
-    var list =
-        imageInfos.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList());
+    var list = imageInfos
+      .stream()//
+      .map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, buildElapsedTime(mapper.created)))//
+      .collect(Collectors.toList());
 
     return Optional.of(list);
   }
 
   /*
-   * 
-   * TODO: Fix elapsed-time field bug Actual "elapsed-time": "2019-11-18 05:40:41.459" but must be
-   * XmYs Improve implement of buildElapsedTime to use this method to compute elasped time Possible
-   * to add PID check to have an excellent proof
+   * TODO: add pid check
    */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
@@ -248,11 +246,12 @@ public class DockerService {
     }
 
     runningInstanceMap.remove(key);
+    var diff = System.currentTimeMillis() - runningInstance.created;
 
     return Optional
       .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,
           runningInstance.appPort, runningInstance.servicePort, runningInstance.dockerInstance,
-          runningInstance.created));
+          buildElapsedTime(diff)));
   }
 
   public int findSquareIdFromContainerId(String dockerInstance) {
