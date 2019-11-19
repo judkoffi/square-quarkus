@@ -1,10 +1,6 @@
 package fr.umlv.square.service;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -17,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
@@ -29,10 +26,10 @@ public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
   private final static String DOCKERFILES_DIRECTORY = "docker-images/";
   private final static int HOUR_MINUTE_VALUE = 60;
-  private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
   private final String squareHost;
   private final String squarePort;
+  private final ProcessBuilderHelper processHelper;
 
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
@@ -48,20 +45,8 @@ public class DockerService {
       @ConfigProperty(name = "quarkus.http.port") String squarePort) {
     this.squareHost = squareHost;
     this.squarePort = squarePort;
-    this.processBuilder = new ProcessBuilder().directory(new File("../../"));
     this.runningInstanceMap = new HashMap<Integer, ImageInfo>();
-  }
-
-  /* Helper method use to display output after run command on terminal */
-  private static String getOutputOfCommand(InputStream outputStream) throws IOException {
-    var reader = new BufferedReader(new InputStreamReader(outputStream));
-    var builder = new StringBuilder();
-    String line = null;
-    while ((line = reader.readLine()) != null) {
-      builder.append(line);
-      builder.append(System.getProperty("line.separator"));
-    }
-    return builder.toString();
+    this.processHelper = new ProcessBuilderHelper();
   }
 
   private String createDockerFile(String appName, int port) {
@@ -74,33 +59,20 @@ public class DockerService {
 
     var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
-    try {
-      var exitValue =
-          processBuilder.command("bash", "-c", createDockerfileCommand).start().waitFor();
-      return (exitValue == 0) ? imagePath : null;
-    } catch (IOException | InterruptedException e) {
-      throw new AssertionError();
-    }
+    return processHelper.execWaitForCommand(createDockerfileCommand) ? imagePath : null;
   }
 
   private boolean buildImage(String imagePath, String appName) {
     var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " ./";
-    try {
-      var exitValue = processBuilder.command("bash", "-c", builImageCommand).start().waitFor();
-      return (exitValue == 0);
-    } catch (IOException | InterruptedException e) {
-      throw new AssertionError();
-    }
+    return processHelper.execWaitForCommand(builImageCommand);
   }
 
   private int generateId() {
     var id = 1 + new Random().nextInt(Integer.MAX_VALUE);
-    if (!runningInstanceMap.containsKey(id))
-      return id;
-    return generateId();
+    return (!runningInstanceMap.containsKey(id)) ? id : generateId();
   }
 
-  public static int generateRandomPort() {
+  private static int generateRandomPort() {
     ServerSocket s = null;
     try {
       s = new ServerSocket(0);
@@ -117,34 +89,16 @@ public class DockerService {
     }
   }
 
-  /**
-   * Class use to return a pair of value (ID -> PID) PID is use to check if instance is isAlive
-   */
-  private static class PairPidId {
-    private final int id;
-    private final long pid;
-
-    public PairPidId(int id, long pid) {
-      this.id = Objects.requireNonNull(id);
-      this.pid = Objects.requireNonNull(pid);
-    }
-  }
-
+  // TODO: Remove modulo
   private PairPidId runImage(String imageName, int appPort, int servicePort) {
-    // TODO: Remove modulo
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
 
     var cmd = "docker run --rm -p " + servicePort + ":" + appPort + " --name " + uniqueName
         + " --hostname=" + uniqueName + " " + imageName;
 
-    try {
-      var process = processBuilder.command("bash", "-c", cmd).start();
-      var runProcess = process.isAlive();
-      return runProcess ? new PairPidId(id, process.pid()) : null;
-    } catch (IOException e) {
-      throw new AssertionError(e);
-    }
+    var pid = processHelper.execAliveCommand(cmd);
+    return (pid != -1) ? new PairPidId(id, pid) : null;
   }
 
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
@@ -154,15 +108,8 @@ public class DockerService {
 
   private boolean isAlreadyImage(String appName) {
     var cmd = "docker image inspect " + appName;
-    try {
-      var process = processBuilder.command("bash", "-c", cmd).start();
-      var outputStream = process.getInputStream();
-      var exitValue = process.waitFor();
-      var consoleOutput = getOutputOfCommand(outputStream);
-      return exitValue == 0 && !consoleOutput.contains("[]");
-    } catch (IOException | InterruptedException e) {
-      throw new AssertionError(e);
-    }
+    var cmdResult = processHelper.execOutputCommand(cmd);
+    return cmdResult.contains("[]");
   }
 
   private Optional<ImageInfo> runBuildedImage(String appName, int appPort) {
@@ -173,7 +120,6 @@ public class DockerService {
       return Optional.empty();
 
     var dockerInstance = appName + "-" + ranImageId.id;
-
     return Optional
       .of(new ImageInfo(appName, new Timestamp(System.currentTimeMillis()).toString(), appPort,
           servicePort, dockerInstance, ranImageId.id));
@@ -196,10 +142,8 @@ public class DockerService {
       }
 
       var imageInfo = runBuildedImage(appName, appPort);
-      if (imageInfo.isEmpty()) {
-        System.err.println("run empty");
+      if (imageInfo.isEmpty())
         return Optional.empty();
-      }
 
       var info = imageInfo.get();
       runningInstanceMap.put(info.squareId, info);
@@ -215,11 +159,8 @@ public class DockerService {
     }
   }
 
-  /*
-   * TODO: FIX Hours adding to minutes
-   */
   private String buildElapsedTime(long diff) {
-    var calendar = Calendar.getInstance();
+    var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     calendar.setTimeInMillis(diff);
     var hoursToMinutes = calendar.get(Calendar.HOUR_OF_DAY) * HOUR_MINUTE_VALUE;
     var minutes = hoursToMinutes + calendar.get(Calendar.MINUTE);
@@ -276,53 +217,42 @@ public class DockerService {
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
-    try {
-      var process = processBuilder.command("bash", "-c", cmd).start();
-      var outputStream = process.getInputStream();
-      var exitValue = process.waitFor();
 
-      if (exitValue != 0)
-        return Optional.empty();
-
-      var consoleOutput = getOutputOfCommand(outputStream);
-      List<ImageInfo> infoList = parseDockerPs(consoleOutput, (p) -> true);
-
-      return Optional
-        .of(infoList.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList()));
-    } catch (IOException | InterruptedException e) {
+    var cmdResult = processHelper.execOutputCommand(cmd);
+    if (cmdResult == null) {
       return Optional.empty();
     }
+
+    List<ImageInfo> imageInfos = parseDockerPs(cmdResult, (p) -> true);
+
+    var list =
+        imageInfos.stream().map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, mapper.created)).collect(Collectors.toList());
+
+    return Optional.of(list);
   }
 
   /*
    * 
    * TODO: Fix elapsed-time field bug Actual "elapsed-time": "2019-11-18 05:40:41.459" but must be
-   * XmYs Improve implement of buildElapsedTime to use this method to compute elasped time
+   * XmYs Improve implement of buildElapsedTime to use this method to compute elasped time Possible
+   * to add PID check to have an excellent proof
    */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.dockerInstance;
 
-    try {
-      var process = processBuilder.command("bash", "-c", cmd).start();
-      var outputStream = process.getInputStream();
-      var exitValue = process.waitFor();
+    var cmdResult = processHelper.execWaitForCommand(cmd);
 
-      if (exitValue != 0)
-        return Optional.empty();
-
-      var consoleOutput = getOutputOfCommand(outputStream);
-      System.out.println(consoleOutput);
-
-      runningInstanceMap.remove(key);
-
-      return Optional
-        .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,
-            runningInstance.appPort, runningInstance.servicePort, runningInstance.dockerInstance,
-            runningInstance.created));
-    } catch (IOException | InterruptedException e) {
+    if (!cmdResult) {
       return Optional.empty();
     }
+
+    runningInstanceMap.remove(key);
+
+    return Optional
+      .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,
+          runningInstance.appPort, runningInstance.servicePort, runningInstance.dockerInstance,
+          runningInstance.created));
   }
 
   public int findSquareIdFromContainerId(String dockerInstance) {
@@ -350,6 +280,19 @@ public class DockerService {
       .filter((p) -> p.getValue().dockerInstance.equals(dockerInstance))
       .findFirst();
     return imageInfo.isEmpty() ? null : imageInfo.get().getValue().imageName;
+  }
+
+  /**
+   * Class use to return a pair of value (ID -> PID) PID is use to check if instance is isAlive
+   */
+  private static class PairPidId {
+    private final int id;
+    private final long pid;
+
+    public PairPidId(int id, long pid) {
+      this.id = Objects.requireNonNull(id);
+      this.pid = Objects.requireNonNull(pid);
+    }
   }
 
 }
