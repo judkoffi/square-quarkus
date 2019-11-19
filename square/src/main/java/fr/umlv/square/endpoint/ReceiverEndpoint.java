@@ -19,11 +19,14 @@ import fr.umlv.square.service.LogService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReceiverEndpoint {
 
-  @Inject
-  LogService logService;
+  private final LogService logService;
+  private final DockerService dockerService;
 
   @Inject
-  DockerService dockerService;
+  public ReceiverEndpoint(DockerService dockerService, LogService logService) {
+    this.dockerService = dockerService;
+    this.logService = logService;
+  }
 
   /**
    * Endpoint to receive log from square-client lib store insde each docker instance

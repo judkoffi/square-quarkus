@@ -23,9 +23,13 @@ import fr.umlv.square.util.SquareHttpStatusCode;
 @Consumes(MediaType.APPLICATION_JSON)
 public class LogEndpoint {
 
+  private final LogService logService;
+
   @Inject
-  LogService logService;
-  
+  public LogEndpoint(LogService logService) {
+    this.logService = logService;
+  }
+
   private final static ArrayList<LogTimeResponse> data;
 
   static {

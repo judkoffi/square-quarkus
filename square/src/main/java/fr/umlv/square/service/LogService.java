@@ -14,11 +14,12 @@ import fr.umlv.square.orm.LogRepository;
  */
 @ApplicationScoped
 public class LogService {
+  private final LogRepository databaseRepository;
 
   @Inject
-  LogRepository databaseRepository;
-
-  public LogService() {}
+  public LogService(LogRepository databaseRepository) {
+    this.databaseRepository = databaseRepository;
+  }
 
   public List<LogEntity> getAllLogs() {
     return databaseRepository.listAll();
@@ -32,6 +33,5 @@ public class LogService {
   public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
     return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
   }
-
 
 }

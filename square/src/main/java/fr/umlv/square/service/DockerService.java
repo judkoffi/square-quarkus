@@ -31,12 +31,8 @@ public class DockerService {
   private final static int HOUR_MINUTE_VALUE = 60;
   private final ProcessBuilder processBuilder;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
-
-  @ConfigProperty(name = "quarkus.http.host") // read this api host from application.properties
-  String squareHost;
-
-  @ConfigProperty(name = "quarkus.http.port") // read this api port from application.properties
-  String squarePort;
+  private final String squareHost;
+  private final String squarePort;
 
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
@@ -45,8 +41,13 @@ public class DockerService {
         + "ENV SQUARE_PORT={{4}}\n" + "RUN chmod 775 /app\n" + "EXPOSE {{2}}\n";
   }
 
-  public DockerService() {
-    // default pwd = square/target
+  /*
+   * @ConfigProperty(name = "quarkus.http.host") read this api host from application.properties
+   */
+  public DockerService(@ConfigProperty(name = "quarkus.http.host") String squareHost,
+      @ConfigProperty(name = "quarkus.http.port") String squarePort) {
+    this.squareHost = squareHost;
+    this.squarePort = squarePort;
     this.processBuilder = new ProcessBuilder().directory(new File("../../"));
     this.runningInstanceMap = new HashMap<Integer, ImageInfo>();
   }

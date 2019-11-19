@@ -21,11 +21,14 @@ import fr.umlv.square.util.SquareHttpStatusCode;
 @Consumes(MediaType.APPLICATION_JSON)
 public class RunningAppEndpoint {
 
-  @Inject
-  Validator validator;
+  private final Validator validator;
+  private final DockerService dockerService;
 
   @Inject
-  DockerService dockerService;
+  public RunningAppEndpoint(DockerService dockerService, Validator validator) {
+    this.dockerService = dockerService;
+    this.validator = validator;
+  }
 
   @POST
   @Path("/deploy")
