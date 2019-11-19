@@ -12,10 +12,6 @@ import io.quarkus.test.Mock;
 @ApplicationScoped
 public class MockDockerService extends DockerService {
 
-  public MockDockerService(String squareHost, String squarePort) {
-    super(squareHost, squarePort);
-  }
-
   @Override
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     var response = new DeployResponse(4, appName, appPort, 10000, appName + "_" + appPort);
