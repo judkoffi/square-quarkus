@@ -1,4 +1,4 @@
-package fr.umlv.square.model.request;
+package fr.umlv.square.model.service;
 
 /**
  * Model class to map LogModel object send by square client app

@@ -1,17 +1,41 @@
-package fr.umlv.square.service;
+package fr.umlv.square.model.service;
 
 import java.util.Objects;
 
 /**
  * Model class use to store information read from docker ps command
  */
-class ImageInfo {
-  final String imageName;
-  final long created;
-  final int appPort;
-  final int servicePort;
-  final String dockerInstance;
-  final int squareId;
+public class ImageInfo {
+  private final String imageName;
+  private final long created;
+  private final int appPort;
+  private final int servicePort;
+  private final String dockerInstance;
+  private final int squareId;
+
+  public String getImageName() {
+    return imageName;
+  }
+
+  public long getCreated() {
+    return created;
+  }
+
+  public int getAppPort() {
+    return appPort;
+  }
+
+  public int getServicePort() {
+    return servicePort;
+  }
+
+  public String getDockerInstance() {
+    return dockerInstance;
+  }
+
+  public int getSquareId() {
+    return squareId;
+  }
 
   public ImageInfo(String image, long created, int appPort, int servicePort, String dockerInstance,
       int squareId) {
