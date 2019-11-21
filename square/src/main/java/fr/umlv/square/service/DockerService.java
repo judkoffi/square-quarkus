@@ -2,23 +2,20 @@ package fr.umlv.square.service;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
+import fr.umlv.square.model.service.ImageInfo;
+import fr.umlv.square.util.ProcessBuilderHelper;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
@@ -93,7 +90,7 @@ public class DockerService {
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
 
-    var cmd = "docker run --rm -p " + servicePort + ":" + appPort + " --name " + uniqueName
+    var cmd = "docker run --rm -d -p " + servicePort + ":" + appPort + " --name " + uniqueName
         + " --hostname=" + uniqueName + " " + imageName;
 
     var pid = processHelper.execAliveCommand(cmd);
@@ -145,13 +142,13 @@ public class DockerService {
         return Optional.empty();
 
       var info = imageInfo.get();
-      runningInstanceMap.put(info.squareId, info);
+      runningInstanceMap.put(info.getSquareId(), info);
 
       System.out.println(info);
 
       return Optional
-        .of(new DeployResponse(info.squareId, appName, appPort, info.servicePort,
-            info.dockerInstance));
+        .of(new DeployResponse(info.getSquareId(), appName, appPort, info.getServicePort(),
+            info.getDockerInstance()));
 
     } catch (AssertionError e) {
       return Optional.empty();
@@ -166,53 +163,6 @@ public class DockerService {
     return minutes + "m" + calendar.get(Calendar.SECOND) + "s";
   }
 
-  /**
-   * Extract each token of the line
-   * 
-   * @param tokens
-   * @return
-   */
-  private ImageInfo psLinetoImageInfo(String[] tokens) {
-    var id = Integer.parseInt(tokens[6].split("-")[1]);
-    var ports = tokens[5].split(":");
-    var servicePort = Integer.parseInt(ports[1].split("->")[0]);
-    var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
-    var timestampString = (tokens[3].trim());
-    var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
-
-    Date date = null;
-    try {
-      date = dateFormatter.parse(timestampString);
-    } catch (ParseException e) {
-      throw new AssertionError(e);
-    }
-
-    var diff = System.currentTimeMillis() - date.getTime();
-
-    return new ImageInfo(tokens[1], diff, appPort, servicePort, tokens[6], id);
-  }
-
-  /**
-   * Extract one line of the ps command
-   * 
-   * @param psOutput
-   * @param predicate
-   * @return
-   */
-  private List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
-    var regex = "([A-Z\\s]+?)($|\\s{2,})";
-    var lines = psOutput.trim().split("\n");
-
-    return Arrays
-      .stream(lines)
-      .skip(1)
-      .filter(predicate)
-      .map((elt) -> elt.split(regex))
-      .map((tokens) -> psLinetoImageInfo(tokens))
-      .collect(Collectors.toList());
-  }
-
-
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
@@ -222,11 +172,11 @@ public class DockerService {
       return Optional.empty();
     }
 
-    List<ImageInfo> imageInfos = parseDockerPs(cmdResult, (p) -> true);
+    List<ImageInfo> imageInfos = ProcessBuilderHelper.parseDockerPs(cmdResult, (p) -> true);
 
     var list = imageInfos
       .stream()//
-      .map((mapper) -> new RunningInstanceInfo(mapper.squareId, mapper.imageName, mapper.appPort, mapper.servicePort, mapper.dockerInstance, buildElapsedTime(mapper.created)))//
+      .map((mapper) -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(), mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(), buildElapsedTime(mapper.getCreated())))//
       .collect(Collectors.toList());
 
     return Optional.of(list);
@@ -237,7 +187,7 @@ public class DockerService {
    */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
-    var cmd = "docker kill " + runningInstance.dockerInstance;
+    var cmd = "docker kill " + runningInstance.getDockerInstance();
 
     var cmdResult = processHelper.execWaitForCommand(cmd);
 
@@ -246,19 +196,19 @@ public class DockerService {
     }
 
     runningInstanceMap.remove(key);
-    var diff = System.currentTimeMillis() - runningInstance.created;
+    var diff = System.currentTimeMillis() - runningInstance.getCreated();
 
     return Optional
-      .of(new RunningInstanceInfo(runningInstance.squareId, runningInstance.imageName,
-          runningInstance.appPort, runningInstance.servicePort, runningInstance.dockerInstance,
-          buildElapsedTime(diff)));
+      .of(new RunningInstanceInfo(runningInstance.getSquareId(), runningInstance.getImageName(),
+          runningInstance.getAppPort(), runningInstance.getServicePort(),
+          runningInstance.getDockerInstance(), buildElapsedTime(diff)));
   }
 
   public int findSquareIdFromContainerId(String dockerInstance) {
     var imageInfo = runningInstanceMap
       .entrySet()
       .stream()
-      .filter((p) -> p.getValue().dockerInstance.equals(dockerInstance))
+      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
     return imageInfo.isEmpty() ? -1 : imageInfo.get().getKey();
   }
@@ -267,18 +217,18 @@ public class DockerService {
     var imageInfo = runningInstanceMap
       .entrySet()
       .stream()
-      .filter((p) -> p.getValue().dockerInstance.equals(dockerInstance))
+      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
-    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().dockerInstance;
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().getDockerInstance();
   }
 
   public String findAppNameFromContainerId(String dockerInstance) {
     var imageInfo = runningInstanceMap
       .entrySet()
       .stream()
-      .filter((p) -> p.getValue().dockerInstance.equals(dockerInstance))
+      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
-    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().imageName;
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().getImageName();
   }
 
   /**
@@ -292,6 +242,14 @@ public class DockerService {
       this.id = Objects.requireNonNull(id);
       this.pid = Objects.requireNonNull(pid);
     }
+  }
+
+  void putInstance(ImageInfo instance) {
+    runningInstanceMap.put(instance.getSquareId(), instance);
+  }
+
+  HashMap<Integer, ImageInfo> getRunningInstanceMap() {
+    return runningInstanceMap;
   }
 
 }

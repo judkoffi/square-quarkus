@@ -3,6 +3,7 @@ package fr.umlv.square.model.request;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import fr.umlv.square.model.service.ReceivedLogModel;
 
 /**
  * Class which represent an log request send by square-client from each docker instance
