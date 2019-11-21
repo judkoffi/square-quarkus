@@ -52,7 +52,9 @@ public class LogEndpoint {
     var result = logService
       .getLogsFiltedByTime(time)
       .stream()
-      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate())).map(logTimeResponse -> logTimeResponse.toJson()).collect(Collectors.toList());
+      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
+      .map(logTimeResponse -> logTimeResponse.toJson())
+      .collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();
   }
 
@@ -76,7 +78,7 @@ public class LogEndpoint {
       .getLogsFiltedByTime(time)
       .stream()
       .filter(getPredicate(filter))
-      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate()))//
+      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
       .map(logTimeResponse -> logTimeResponse.toJson())
       .collect(Collectors.toList());
 

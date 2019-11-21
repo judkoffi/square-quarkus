@@ -1,5 +1,6 @@
 package fr.umlv.square.orm;
 
+import java.sql.Timestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -13,6 +14,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 @Entity
 @Table(name = "LogTable")
 public class LogEntity extends PanacheEntity {
+  
   @Column(name = "squareId")
   private int squareId;
 
@@ -21,7 +23,7 @@ public class LogEntity extends PanacheEntity {
   private String message;
 
   @Column(name = "date")
-  private String date;
+  private Timestamp date;
 
   @Column(name = "level")
   private String level;
@@ -40,8 +42,8 @@ public class LogEntity extends PanacheEntity {
 
   public LogEntity() {}
 
-  public LogEntity(int squareId, String date, String level, String message, String dockerInstance,
-      String appName, int port, int servicePort) {
+  public LogEntity(int squareId, Timestamp date, String level, String message,
+      String dockerInstance, String appName, int port, int servicePort) {
     this.squareId = squareId;
     this.date = date;
     this.level = level;
@@ -60,7 +62,7 @@ public class LogEntity extends PanacheEntity {
     return message;
   }
 
-  public String getDate() {
+  public Timestamp getDate() {
     return date;
   }
 

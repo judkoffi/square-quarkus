@@ -1,9 +1,6 @@
 package fr.umlv.square.service;
 
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;

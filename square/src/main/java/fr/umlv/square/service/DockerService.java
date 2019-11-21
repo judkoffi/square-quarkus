@@ -131,12 +131,12 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      if (!isAlreadyImage(appName)) {
+      //if (!isAlreadyImage(appName)) {
         System.err.println("not already image");
         var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
         if (!makeDockerfile)
           return Optional.empty();
-      }
+      //}
 
       var imageInfo = runBuildedImage(appName, appPort);
       if (imageInfo.isEmpty())

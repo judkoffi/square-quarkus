@@ -1,7 +1,6 @@
 package fr.umlv.square.model.request;
 
 import java.util.Objects;
-
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
