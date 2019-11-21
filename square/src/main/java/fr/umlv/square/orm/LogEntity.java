@@ -2,6 +2,7 @@ package fr.umlv.square.orm;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import org.hibernate.annotations.Type;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
@@ -10,6 +11,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
  */
 
 @Entity
+@Table(name = "LogTable")
 public class LogEntity extends PanacheEntity {
   @Column(name = "squareId")
   private int squareId;
@@ -30,16 +32,24 @@ public class LogEntity extends PanacheEntity {
   @Column(name = "appname")
   private String appName;
 
+  @Column(name = "port")
+  private int port;
+
+  @Column(name = "servicePort")
+  private int servicePort;
+
   public LogEntity() {}
 
   public LogEntity(int squareId, String date, String level, String message, String dockerInstance,
-      String appName) {
+      String appName, int port, int servicePort) {
     this.squareId = squareId;
     this.date = date;
     this.level = level;
     this.message = message;
     this.dockerInstance = dockerInstance;
     this.appName = appName;
+    this.port = port;
+    this.servicePort = servicePort;
   }
 
   public int getSquareId() {
@@ -66,10 +76,19 @@ public class LogEntity extends PanacheEntity {
     return dockerInstance;
   }
 
+  public int getPort() {
+    return port;
+  }
+
+  public int getServicePort() {
+    return servicePort;
+  }
+
   @Override
   public String toString() {
     return "LogEntity [squareId=" + squareId + ", message=" + message + ", date=" + date
-        + ", level=" + level + ", dockerInstance=" + dockerInstance + ", appName=" + appName + "]";
+        + ", level=" + level + ", dockerInstance=" + dockerInstance + ", appName=" + appName
+        + ", port=" + port + ", servicePort=" + servicePort + "]";
   }
 
 }

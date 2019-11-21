@@ -1,11 +1,7 @@
 package fr.umlv.square.endpoint;
 
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -15,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import fr.umlv.square.model.response.LogTimeResponse;
+import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.LogService;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
@@ -28,12 +25,6 @@ public class LogEndpoint {
   @Inject
   public LogEndpoint(LogService logService) {
     this.logService = logService;
-  }
-
-  private final static ArrayList<LogTimeResponse> data;
-
-  static {
-    data = fillArrayList();
   }
 
   private static enum FilterType {
@@ -55,7 +46,13 @@ public class LogEndpoint {
         .entity("Invalid time value")
         .build();
 
-    var result = logsFiltedByTime(time).map(e -> e.toJson()).collect(Collectors.toList());
+
+    //TODO: Improve filter by date metho and use Date typeF
+    System.out.println("---------------------------------------");
+    var result = logService
+      .getAllLogs()
+      .stream()
+      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate())).map(logTimeResponse -> logTimeResponse.toJson()).collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();
   }
 
@@ -75,55 +72,15 @@ public class LogEndpoint {
         .entity("Invalid time value")
         .build();
 
-    var result = logsFiltedByTime(time)
+    var result = logService
+      .getLogsFiltedByTime(time)
+      .stream()
       .filter(getPredicate(filter))
-      .map(e -> e.toJson())
+      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate()))//
+      .map(logTimeResponse -> logTimeResponse.toJson())
       .collect(Collectors.toList());
 
     return Response.ok().entity(result.toString()).build();
-  }
-
-  /**
-   * Fill an array of data to test the roads
-   * 
-   * @return an ArrayList of data
-   */
-  private static ArrayList<LogTimeResponse> fillArrayList() {
-    var arraylist = new ArrayList<LogTimeResponse>(10);
-    for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 5; j++) {
-        arraylist
-          .add(new LogTimeResponse(j, "app:" + i, 80 + i, 80 + i, "docker_80-" + i, "log_" + i,
-              new Timestamp(System.currentTimeMillis() - (i + j * 1000 * 60)).toString()));
-      }
-    }
-    return arraylist;
-  }
-
-  /**
-   * Convert minutes into milliseconds
-   * 
-   * @param minutes : the minutes to convert
-   * @return the minutes given converted into milliseconds
-   */
-  private static long convertMinuteToMillisecond(long minutes) {
-    return TimeUnit.MINUTES.toMillis(minutes);
-  }
-
-  /**
-   * Filter the data ArrayList with only the logs that are before the number of minutes given as
-   * argument
-   * 
-   * @param timestamp : the last minutes for which the logs are wanted
-   * @return a Stram of the logs which are in the "timestamp" last minutes
-   */
-  private static Stream<LogTimeResponse> logsFiltedByTime(String timestamp) {
-    var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
-    var filterTimestamp = new Timestamp(System.currentTimeMillis() - timeTarget);
-    return data
-      .stream()
-      .filter((log) -> log.getTimestamp().compareTo(filterTimestamp.toString()) > 0);
-
   }
 
   /**
@@ -132,11 +89,11 @@ public class LogEndpoint {
    * @param filter : the String used to filter logs
    * @return a Predicate corresponding to the type of filter wanted
    */
-  private static Predicate<LogTimeResponse> getPredicate(String filter) {
+  private Predicate<LogEntity> getPredicate(String filter) {
     var filterType = findFilterType(filter);
     switch (filterType) {
       case ID:
-        return (e) -> e.getId() == Integer.parseInt(filter);
+        return (e) -> e.getSquareId() == Integer.parseInt(filter);
       case APPLICATION:
         return (e) -> e.getAppName().equals(filter);
       case DOCKER:

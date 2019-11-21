@@ -29,7 +29,7 @@ public class ReceiverEndpoint {
   }
 
   /**
-   * Endpoint to receive log from square-client lib store insde each docker instance
+   * Endpoint to receive log from square-client lib store inside each docker instance
    * 
    * @param request: an {@ClientLogRequest} which contain request from an docker instance
    */
@@ -37,16 +37,15 @@ public class ReceiverEndpoint {
   @Path("/send-log/")
   public void processReceivedLog(ClientLogRequest request) {
     var originInstance = request.getDockerInstance();
-    var squareId = dockerService.findSquareIdFromContainerId(originInstance);
-    var appName = dockerService.findAppNameFromContainerId(originInstance);
-
+    var imageInfo = dockerService.findImageInfoByDockerInstance(originInstance);
     var logs = request.getLogs();
     if (logs.isEmpty())
       return;
 
     var entities = logs
       .stream()//
-      .map((log) -> new LogEntity(squareId, log.getDate(), log.getLevel(), log.getMessage(), originInstance, appName)).collect(Collectors.toList());
+      .map((log) -> new LogEntity(imageInfo.getSquareId(), log.getDate(), log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(), imageInfo.getAppPort(), imageInfo.getServicePort()))//
+      .collect(Collectors.toList());
 
     logService.saveLogs(entities);
   }

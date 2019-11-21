@@ -20,7 +20,7 @@ public class LogTimeResponse extends AbstractResponse {
   public String getTimestamp() {
     return timestamp;
   }
-
+  
   @Override
   String buildJson() {
     return super.buildJson() + ", \"message\":\"" + message + "\"" + ", \"timestamp\":\""

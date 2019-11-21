@@ -102,6 +102,7 @@ public class DockerService {
     return dockerImagePath == null ? false : buildImage(dockerImagePath, appName);
   }
 
+  //TODO: Have better implementation, because it's not work 
   private boolean isAlreadyImage(String appName) {
     var cmd = "docker image inspect " + appName;
     var cmdResult = processHelper.execOutputCommand(cmd);
@@ -229,6 +230,15 @@ public class DockerService {
       .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
     return imageInfo.isEmpty() ? null : imageInfo.get().getValue().getImageName();
+  }
+
+  public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {
+    var imageInfo = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
+      .findFirst();
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
   }
 
   /**

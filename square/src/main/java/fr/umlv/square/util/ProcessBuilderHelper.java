@@ -102,7 +102,7 @@ public class ProcessBuilderHelper {
       var process = processBuilder.command("bash", "-c", cmd).start();
       var outputStream = process.getInputStream();
       var exitValue = process.waitFor();
-      return (exitValue == 0) ? getOutputOfCommand(outputStream) : null;
+      return (exitValue == 0) ? getOutputOfCommand(outputStream) : "";
     } catch (IOException | InterruptedException e) {
       return null;
     }
