@@ -47,10 +47,10 @@ public class LogEndpoint {
         .build();
 
 
-    //TODO: Improve filter by date metho and use Date typeF
+    // TODO: Improve filter by date metho and use Date typeF
     System.out.println("---------------------------------------");
     var result = logService
-      .getAllLogs()
+      .getLogsFiltedByTime(time)
       .stream()
       .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate())).map(logTimeResponse -> logTimeResponse.toJson()).collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();

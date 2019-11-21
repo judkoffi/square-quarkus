@@ -1,6 +1,9 @@
 package fr.umlv.square.service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -35,7 +38,7 @@ public class LogService {
   public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
     return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
   }
-  
+
   /**
    * Convert minutes into milliseconds
    * 
@@ -45,19 +48,16 @@ public class LogService {
   private static long convertMinuteToMillisecond(long minutes) {
     return TimeUnit.MINUTES.toMillis(minutes);
   }
-  
-  public List<LogEntity> getLogsFiltedByTime(String timestamp){
+
+  public List<LogEntity> getLogsFiltedByTime(String timestamp) {
     var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
     var filterTimestamp = "" + new Timestamp(System.currentTimeMillis() - timeTarget);
-    System.out.println(databaseRepository.find("date <= ?1 ", filterTimestamp).list());
-    return databaseRepository.find("date", filterTimestamp).list();
+    System.out.println("dateee " + filterTimestamp);
+    return databaseRepository.find("date >= ?1", filterTimestamp).list();
   }
-  
-  public List<LogEntity> getLogsFiltedById(String timestamp){
-    var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
-    var filterTimestamp = "" + new Timestamp(System.currentTimeMillis() - timeTarget);
-    System.out.println(databaseRepository.find("date <= ?1 ", filterTimestamp).list());
-    return databaseRepository.find("date", filterTimestamp).list();
+
+  public List<LogEntity> getLogsFiltedById(int id) {
+    return databaseRepository.find("squareId", id).list();
   }
 
 }
