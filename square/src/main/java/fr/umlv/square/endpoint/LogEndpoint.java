@@ -97,7 +97,8 @@ public class LogEndpoint {
       case ID:
         return (e) -> e.getSquareId() == Integer.parseInt(filter);
       case APPLICATION:
-        return (e) -> e.getAppName().equals(filter);
+        //args: todomvc:8082
+        return (e) -> ("" + e.getAppName() + ":" + e.getPort()).equals(filter);
       case DOCKER:
         return (e) -> e.getDockerInstance().equals(filter);
       default:

@@ -102,7 +102,7 @@ public class DockerService {
     return dockerImagePath == null ? false : buildImage(dockerImagePath, appName);
   }
 
-  //TODO: Have better implementation, because it's not work 
+  // TODO: Have better implementation, because it's not work
   private boolean isAlreadyImage(String appName) {
     var cmd = "docker image inspect " + appName;
     var cmdResult = processHelper.execOutputCommand(cmd);
@@ -131,12 +131,12 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      //if (!isAlreadyImage(appName)) {
-        System.err.println("not already image");
-        var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
-        if (!makeDockerfile)
-          return Optional.empty();
-      //}
+      // if (!isAlreadyImage(appName)) {
+      System.err.println("not already image");
+      var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
+      if (!makeDockerfile)
+        return Optional.empty();
+      // }
 
       var imageInfo = runBuildedImage(appName, appPort);
       if (imageInfo.isEmpty())

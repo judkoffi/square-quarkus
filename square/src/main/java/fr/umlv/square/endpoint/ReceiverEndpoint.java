@@ -16,7 +16,6 @@ import fr.umlv.square.model.request.ClientLogRequest;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.service.LogService;
-import fr.umlv.square.util.ProcessBuilderHelper;
 
 @Path("/container-log")
 @Produces(MediaType.APPLICATION_JSON)

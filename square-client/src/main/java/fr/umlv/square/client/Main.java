@@ -16,9 +16,8 @@ public class Main {
        */
       System.exit(-1);
     }
-    // TODO use an infinite loop
-    var i = 0;
-    while (i < 50) {
+    
+    while (!Thread.interrupted()) {
       new Thread(() ->
       {
         try {
@@ -32,7 +31,6 @@ public class Main {
       } catch (InterruptedException e) {
         return;
       }
-      i++;
     }
   }
 }

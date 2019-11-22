@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -39,7 +37,7 @@ public class ProcessBuilderHelper {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
     var servicePort = Integer.parseInt(ports[1].split("->")[0]);
-    var appPort = Integer.parseInt(((ports[1].split("->")[0]).split("/"))[0]);
+    var appPort = Integer.parseInt(((ports[1].split("->")[1]).split("/"))[0]);
     var timestampString = (tokens[3].trim());
     var dateFormatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss z");
 

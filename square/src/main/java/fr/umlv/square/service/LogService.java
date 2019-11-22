@@ -1,6 +1,9 @@
 package fr.umlv.square.service;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -46,11 +49,24 @@ public class LogService {
     return TimeUnit.MINUTES.toMillis(minutes);
   }
 
+  private static Timestamp convertStringToTimestamp(String strDate) {
+    try {
+      var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+      var date = formatter.parse(strDate);
+      var timeStampDate = new Timestamp(date.getTime());
+      return timeStampDate;
+    } catch (ParseException e) {
+      System.out.println("Exception :" + e);
+      return null;
+    }
+  }
+
   public List<LogEntity> getLogsFiltedByTime(String timestamp) {
     var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
-    var filterTimestamp = "" + new Timestamp(System.currentTimeMillis() - timeTarget);
-    System.out.println("dateee " + filterTimestamp);
-    return databaseRepository.find("date >= ?1", filterTimestamp).list();
+    var timeWithoutOffset = (System.currentTimeMillis() - timeTarget)
+        - TimeUnit.SECONDS.toMillis(ZonedDateTime.now().getOffset().getTotalSeconds());
+    var filterTimestamp = "" + new Timestamp(timeWithoutOffset);
+    return databaseRepository.find("date >= ?1", convertStringToTimestamp(filterTimestamp)).list();
   }
 
   public List<LogEntity> getLogsFiltedById(int id) {
