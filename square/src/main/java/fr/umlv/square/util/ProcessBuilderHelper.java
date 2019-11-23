@@ -81,19 +81,8 @@ public class ProcessBuilderHelper {
     try {
       var exitValue = processBuilder.command("bash", "-c", cmd).start().waitFor();
       return (exitValue == 0);
-    } catch (IOException e) {
+    } catch (IOException | InterruptedException e) {
       return false;
-    } catch (InterruptedException e) {
-      throw new AssertionError(e);
-    }
-  }
-
-  public long execAliveCommand(String cmd) {
-    try {
-      var process = processBuilder.command("bash", "-c", cmd).start();
-      return process.isAlive() ? process.pid() : -1;
-    } catch (IOException e) {
-      return -1;
     }
   }
 
@@ -104,7 +93,7 @@ public class ProcessBuilderHelper {
       var exitValue = process.waitFor();
       return (exitValue == 0) ? getOutputOfCommand(outputStream) : "";
     } catch (IOException | InterruptedException e) {
-      return null;
+      throw new AssertionError(e);
     }
   }
 }

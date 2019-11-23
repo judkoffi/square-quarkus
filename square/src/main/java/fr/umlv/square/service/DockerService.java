@@ -5,7 +5,6 @@ import java.net.ServerSocket;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.TimeZone;
@@ -86,15 +85,16 @@ public class DockerService {
   }
 
   // TODO: Remove modulo
-  private PairPidId runImage(String imageName, int appPort, int servicePort) {
+  private int runImage(String imageName, int appPort, int servicePort) {
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
-
     var cmd = "docker run --rm -d -p " + servicePort + ":" + appPort + " --name " + uniqueName
         + " --hostname=" + uniqueName + " " + imageName;
 
-    var pid = processHelper.execAliveCommand(cmd);
-    return (pid != -1) ? new PairPidId(id, pid) : null;
+    var output = processHelper.execOutputCommand(cmd).split(System.lineSeparator())[0];
+    var checkRuningCmd = "docker inspect -f '{{.State.Running}}' " + output;
+    var status = processHelper.execOutputCommand(checkRuningCmd).split(System.lineSeparator())[0];
+    return status.equals("true") ? id : -1;
   }
 
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
@@ -111,15 +111,15 @@ public class DockerService {
 
   private Optional<ImageInfo> runBuildedImage(String appName, int appPort) {
     var servicePort = generateRandomPort();
-    var ranImageId = runImage(appName, appPort, servicePort);
+    var runnedId = runImage(appName, appPort, servicePort);
 
-    if (ranImageId.id == -1 || ProcessHandle.of(ranImageId.pid).isEmpty())
+    if (runnedId == -1)
       return Optional.empty();
 
-    var dockerInstance = appName + "-" + ranImageId.id;
+    var dockerInstance = appName + "-" + runnedId;
     return Optional
       .of(new ImageInfo(appName, System.currentTimeMillis(), appPort, servicePort, dockerInstance,
-          ranImageId.id));
+          runnedId));
   }
 
   /**
@@ -132,7 +132,6 @@ public class DockerService {
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
       // if (!isAlreadyImage(appName)) {
-      System.err.println("not already image");
       var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
       if (!makeDockerfile)
         return Optional.empty();
@@ -184,7 +183,7 @@ public class DockerService {
   }
 
   /*
-   * TODO: add pid check
+   * TODO: add PID check
    */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
@@ -239,19 +238,6 @@ public class DockerService {
       .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
     return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
-  }
-
-  /**
-   * Class use to return a pair of value (ID -> PID) PID is use to check if instance is isAlive
-   */
-  private static class PairPidId {
-    private final int id;
-    private final long pid;
-
-    public PairPidId(int id, long pid) {
-      this.id = Objects.requireNonNull(id);
-      this.pid = Objects.requireNonNull(pid);
-    }
   }
 
   void putInstance(ImageInfo instance) {

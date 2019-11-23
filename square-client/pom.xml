@@ -46,7 +46,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>fr.umlv.square.client.Main</mainClass>
+							<mainClass>fr.umlv.square.client.main.Main</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
