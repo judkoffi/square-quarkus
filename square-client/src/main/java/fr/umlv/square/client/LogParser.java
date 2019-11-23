@@ -31,7 +31,7 @@ class LogParser {
       Pattern.compile(TIMESTAMP_REGEX + " " + LEVEL_REGEX + "\\s+" + TEXT_REGEX, Pattern.DOTALL);
 
   /**
-   * Method use to recognise each regex and create an string which contain log to send to square
+   * Method use to recognize each regex and create an string which contain log to send to square
    * 
    * @param lineToParse: raw line of log from log file
    * @return a {@LogModel} which contains extract information from log line read from log's file

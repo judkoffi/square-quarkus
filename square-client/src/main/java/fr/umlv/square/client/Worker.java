@@ -63,6 +63,10 @@ public class Worker {
     }
   }
 
+  /**
+   * Sends logs of the application running to the endpoint API of square
+   * @throws IOException
+   */
   public void doWork() throws IOException {
     synchronized (lock) {
       /*

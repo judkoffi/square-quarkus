@@ -9,7 +9,7 @@ import java.util.List;
 import fr.umlv.square.client.model.LogModel;
 
 /**
- * Class use to store information a Square API like host, port and endpoint to send logs
+ * Class use to store information of a Square API like : host, port and endpoint to send logs
  */
 class SquareClient {
   private final String ENDPOINT = "/container-log/send-log";
@@ -19,7 +19,6 @@ class SquareClient {
   private final Object lock = new Object();
   private final int HTTP_STATUS_OK = 200;
 
-
   public SquareClient(ClientConfig clientConfig) {
     this.squareUrl = "http://" + clientConfig.squareHost + ":" + clientConfig.squarePort;
     this.client = HttpClient.newHttpClient();
@@ -27,7 +26,7 @@ class SquareClient {
   }
 
   /**
-   * 
+   * Build a JSON object from a List of logs
    * @param logsModels: list of logs to to send
    * @return {@String} with represent json body to to send to Square API
    */

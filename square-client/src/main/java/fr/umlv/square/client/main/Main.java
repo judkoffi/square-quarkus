@@ -4,7 +4,7 @@ import java.io.IOException;
 import fr.umlv.square.client.Worker;
 
 /**
- * Main class, main entry for lib client
+ * Main class, main entry for library client
  */
 public class Main {
   public static void main(String[] args) throws IOException {
@@ -13,12 +13,12 @@ public class Main {
       System.err.println("App not start");
       /*
        * kill main app in docker instance will provoke instance kill and we don't need to use a
-       * specicial handle to process if some fatal kill app
+       * special handle to process if some fatal kill app
        */
       System.exit(-1);
     }
 
-    // TODO: Interrupted thred if app is killed
+    // TODO: Interrupted thread if app is killed
     while (!Thread.interrupted()) {
       new Thread(() ->
       {

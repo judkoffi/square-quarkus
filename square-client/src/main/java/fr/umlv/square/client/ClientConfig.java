@@ -49,7 +49,7 @@ class ClientConfig {
     var envVariable = processBuilder.environment();
     String hostname = null;
     try {
-      var process = processBuilder.command("sh", "-c", "hostname").start();
+      var process = processBuilder.command("sh", "-c", "hostname").start(); 
       var exitStatus = process.waitFor();
       if (exitStatus != 0) {
         return ClientConfig.defaultConfig();
@@ -64,6 +64,10 @@ class ClientConfig {
     return new ClientConfig(host, port, hostname);
   }
 
+  /**
+   * Method used to get default configuration parameters when the env variable are empty
+   * @return ClientConfig contains default configuration port and host
+   */
   public static ClientConfig defaultConfig() {
     return new ClientConfig("0.0.0.0", "5050", "-1");
   }

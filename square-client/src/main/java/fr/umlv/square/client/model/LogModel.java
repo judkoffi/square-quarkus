@@ -14,6 +14,10 @@ public class LogModel {
     this.level = level;
   }
 
+  /**
+   * Get the message associated with the log
+   * @return message contained in the log
+   */
   public String getMessage() {
     return message;
   }
