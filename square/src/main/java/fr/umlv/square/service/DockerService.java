@@ -2,6 +2,8 @@ package fr.umlv.square.service;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -44,17 +46,48 @@ public class DockerService {
     this.processHelper = new ProcessBuilderHelper();
   }
 
-  private String createDockerFile(String appName, int port) {
-    var imageFile = DOCKERFILE_TEMPLATE
+  /*
+   * Method to compare content of an dockerfile if it exist with new request dockerfile content
+   */
+  private static boolean isNewImage(Path path, String content) {
+    var file = path.toFile();
+    if (!file.exists()) {
+      return true;
+    } else {
+      try (var fileContent = Files.lines(path)) {
+        var oldContent = fileContent.collect(Collectors.joining(System.lineSeparator())).toString();
+        return !oldContent.equals(content);
+      } catch (IOException e) {
+        throw new AssertionError(e);
+      }
+    }
+  }
+
+  /*
+   * Build dockerfile content for an specified app
+   */
+  private String buildDockerFileContent(String appName, int appPort) {
+    return DOCKERFILE_TEMPLATE
       .replace("{{1}}", appName)
-      .replace("{{2}}", "" + port)
+      .replace("{{2}}", "" + appPort)
       .replace("{{3}}", squareHost)
       .replace("{{4}}", squarePort)
       .concat("CMD java -jar client.jar");
+  }
 
-    var imagePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
-    var createDockerfileCommand = "echo \"" + imageFile + "\" > " + imagePath;
-    return processHelper.execWaitForCommand(createDockerfileCommand) ? imagePath : null;
+  private boolean generateAndBuildDockerFile(String appName, int appPort) {
+    var dockerFilePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
+    var dockerFileContent = buildDockerFileContent(appName, appPort);
+
+    if (isNewImage(
+        Path.of(processHelper.getRootPah() + DOCKERFILES_DIRECTORY + "Dockerfile." + appName),
+        dockerFileContent)) {
+      var createDockerfileCommand = "echo \"" + dockerFileContent + "\" > " + dockerFilePath;
+      var createdFileRes = processHelper.execWaitForCommand(createDockerfileCommand);
+      return createdFileRes && buildImage(dockerFilePath, appName);
+    }
+
+    return true;
   }
 
   private boolean buildImage(String imagePath, String appName) {
@@ -97,18 +130,6 @@ public class DockerService {
     return status.equals("true") ? id : -1;
   }
 
-  private boolean generateAndBuildDockerFile(String appName, int appPort) {
-    var dockerImagePath = createDockerFile(appName, appPort);
-    return dockerImagePath == null ? false : buildImage(dockerImagePath, appName);
-  }
-
-  // TODO: Have better implementation, because it's not work
-  private boolean isAlreadyImage(String appName) {
-    var cmd = "docker image inspect " + appName;
-    var cmdResult = processHelper.execOutputCommand(cmd);
-    return cmdResult.contains("[]");
-  }
-
   private Optional<ImageInfo> runBuildedImage(String appName, int appPort) {
     var servicePort = generateRandomPort();
     var runnedId = runImage(appName, appPort, servicePort);
@@ -131,11 +152,9 @@ public class DockerService {
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
-      // if (!isAlreadyImage(appName)) {
       var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
       if (!makeDockerfile)
         return Optional.empty();
-      // }
 
       var imageInfo = runBuildedImage(appName, appPort);
       if (imageInfo.isEmpty())
@@ -172,28 +191,21 @@ public class DockerService {
       return Optional.empty();
     }
 
-    List<ImageInfo> imageInfos = ProcessBuilderHelper.parseDockerPs(cmdResult, (p) -> true);
-
-    var list = imageInfos
-      .stream()//
+    var list = ProcessBuilderHelper
+      .parseDockerPs(cmdResult, (p) -> true)
+      .stream()
       .map((mapper) -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(), mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(), buildElapsedTime(mapper.getCreated())))//
       .collect(Collectors.toList());
 
     return Optional.of(list);
   }
 
-  /*
-   * TODO: add PID check
-   */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.getDockerInstance();
-
     var cmdResult = processHelper.execWaitForCommand(cmd);
-
-    if (!cmdResult) {
+    if (!cmdResult)
       return Optional.empty();
-    }
 
     runningInstanceMap.remove(key);
     var diff = System.currentTimeMillis() - runningInstance.getCreated();
@@ -202,33 +214,6 @@ public class DockerService {
       .of(new RunningInstanceInfo(runningInstance.getSquareId(), runningInstance.getImageName(),
           runningInstance.getAppPort(), runningInstance.getServicePort(),
           runningInstance.getDockerInstance(), buildElapsedTime(diff)));
-  }
-
-  public int findSquareIdFromContainerId(String dockerInstance) {
-    var imageInfo = runningInstanceMap
-      .entrySet()
-      .stream()
-      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
-      .findFirst();
-    return imageInfo.isEmpty() ? -1 : imageInfo.get().getKey();
-  }
-
-  public String findDockerInstanceFromContainerId(String dockerInstance) {
-    var imageInfo = runningInstanceMap
-      .entrySet()
-      .stream()
-      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
-      .findFirst();
-    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().getDockerInstance();
-  }
-
-  public String findAppNameFromContainerId(String dockerInstance) {
-    var imageInfo = runningInstanceMap
-      .entrySet()
-      .stream()
-      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
-      .findFirst();
-    return imageInfo.isEmpty() ? null : imageInfo.get().getValue().getImageName();
   }
 
   public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {

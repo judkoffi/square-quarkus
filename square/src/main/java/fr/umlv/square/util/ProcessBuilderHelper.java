@@ -96,4 +96,8 @@ public class ProcessBuilderHelper {
       throw new AssertionError(e);
     }
   }
+
+  public String getRootPah() {
+    return processBuilder.directory().getAbsolutePath() + '/';
+  }
 }
