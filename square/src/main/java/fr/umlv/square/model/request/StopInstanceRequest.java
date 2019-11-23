@@ -6,8 +6,9 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
 /**
- * Model request use to map an sport instance post request as a java object
+ * Model request use to map an stop instance post request as a java object
  */
+
 public class StopInstanceRequest {
   @NotNull
   @Positive
@@ -20,10 +21,18 @@ public class StopInstanceRequest {
     this.id = Objects.requireNonNull(id);
   }
 
+  /**
+   * Allow to get the id of an instance top stop
+   * @return : int : the id of an instance to stop
+   */
   public int getId() {
     return id;
   }
 
+  /**
+   * Allow to set the if of a docker instance top stop
+   * @param id : int : the id of an instance top stop
+   */
   public void setId(int id) {
     this.id = id;
   }

@@ -3,8 +3,9 @@ package fr.umlv.square.model.response;
 import java.util.Objects;
 
 /**
- * Class use to represent a JSON response after an log request
+ * Class used to represent a JSON response after a log request
  */
+
 public class LogTimeResponse extends AbstractResponse {
   private final String message;
   private final String timestamp;
@@ -20,8 +21,11 @@ public class LogTimeResponse extends AbstractResponse {
   public String getTimestamp() {
     return timestamp;
   }
-  
+
   @Override
+  /**
+   * build a JSON string using all fields
+   */
   String buildJson() {
     return super.buildJson() + ", \"message\":\"" + message + "\"" + ", \"timestamp\":\""
         + timestamp + "\"";
