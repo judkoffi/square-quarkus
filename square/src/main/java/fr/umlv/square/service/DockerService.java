@@ -143,6 +143,33 @@ public class DockerService {
           runnedId));
   }
 
+
+  private String buildElapsedTime(long diff) {
+    var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+    calendar.setTimeInMillis(diff);
+    var hoursToMinutes = calendar.get(Calendar.HOUR) * HOUR_MINUTE_VALUE;
+    var minutes = hoursToMinutes + calendar.get(Calendar.MINUTE);
+    return minutes + "m" + calendar.get(Calendar.SECOND) + "s";
+  }
+
+
+  public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {
+    var imageInfo = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
+      .findFirst();
+    return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
+  }
+
+  void putInstance(ImageInfo instance) {
+    runningInstanceMap.put(instance.getSquareId(), instance);
+  }
+
+  HashMap<Integer, ImageInfo> getRunningInstanceMap() {
+    return runningInstanceMap;
+  }
+
   /**
    * @param appName: name of application to be deploy in docker container
    * @param port: port of application redirected form docker container to current system
@@ -174,20 +201,12 @@ public class DockerService {
     }
   }
 
-  private String buildElapsedTime(long diff) {
-    var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-    calendar.setTimeInMillis(diff);
-    var hoursToMinutes = calendar.get(Calendar.HOUR_OF_DAY) * HOUR_MINUTE_VALUE;
-    var minutes = hoursToMinutes + calendar.get(Calendar.MINUTE);
-    return minutes + "m" + calendar.get(Calendar.SECOND) + "s";
-  }
-
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
 
     var cmdResult = processHelper.execOutputCommand(cmd);
-    if (cmdResult == null) {
+    if (cmdResult.isBlank() || cmdResult.isEmpty()) {
       return Optional.empty();
     }
 
@@ -215,22 +234,4 @@ public class DockerService {
           runningInstance.getAppPort(), runningInstance.getServicePort(),
           runningInstance.getDockerInstance(), buildElapsedTime(diff)));
   }
-
-  public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {
-    var imageInfo = runningInstanceMap
-      .entrySet()
-      .stream()
-      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
-      .findFirst();
-    return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
-  }
-
-  void putInstance(ImageInfo instance) {
-    runningInstanceMap.put(instance.getSquareId(), instance);
-  }
-
-  HashMap<Integer, ImageInfo> getRunningInstanceMap() {
-    return runningInstanceMap;
-  }
-
 }
