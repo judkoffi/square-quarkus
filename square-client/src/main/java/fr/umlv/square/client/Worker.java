@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.stream.Collectors;
-import fr.umlv.square.model.LogModel;
 
 /**
  * Worker class is a class use to manage application start, log reading and log sending to Square
@@ -65,38 +63,34 @@ public class Worker {
     }
   }
 
-  private List<LogModel> rawLinesToLogModels(List<String> list) {
-    synchronized (lock) {
-      /*
-       * Split lines separated by line separator (\n -> linux, \r -> windows) to extract information
-       * for each line
-       */
-      return list
-        .stream()
-        .map((mapper) -> LogParser.parseLine(mapper))
-        .filter((p) -> !p.getMessage().isBlank() && !p.getMessage().isEmpty())
-        .collect(Collectors.toList());
-
-    }
-  }
-
-
   public void doWork() throws IOException {
     synchronized (lock) {
       /*
        * Read all lines of output's file using Stream API into a list of String and skip previous
        * readed lines
        */
-      var list = Files.lines(Path.of(OUTPUT_FILE)).skip(readingIndex).collect(Collectors.toList());
-      // List of new raw log read from file before extract information
-      var logsModels = rawLinesToLogModels(list);
-      /*
-       * to know the actual end of the file. If no new lines -> keep older index value else update
-       * index
-       */
-      readingIndex = (list.size() == 0) ? readingIndex : readingIndex + list.size();
-      squareClient.sendInfoLog(logsModels);
-      // TODO : if log failed -> retry
+      try (var fileStream = Files.lines(Path.of(OUTPUT_FILE))) {
+
+        var list = fileStream
+          .skip(readingIndex)
+          .map((mapper) -> LogParser.parseLine(mapper))
+          .filter((p) -> !p.getMessage().isBlank() && !p.getMessage().isEmpty())
+          .collect(Collectors.toList());
+
+        if (list.isEmpty())
+          return;
+
+        /*
+         * to know the actual end of the file. If no new lines -> keep older index value else update
+         * index
+         */
+        if (squareClient.sendInfoLog(list)) {
+          readingIndex = readingIndex + list.size();
+          System.out.println("send, index" + readingIndex);
+        } else {
+          System.out.println("No send, index" + readingIndex);
+        }
+      }
     }
   }
 }

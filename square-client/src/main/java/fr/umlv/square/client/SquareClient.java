@@ -6,17 +6,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
-import fr.umlv.square.model.LogModel;
+import fr.umlv.square.client.model.LogModel;
 
 /**
  * Class use to store information a Square API like host, port and endpoint to send logs
  */
-public class SquareClient {
+class SquareClient {
   private final String ENDPOINT = "/container-log/send-log";
   private final String squareUrl;
   private final HttpClient client;
   private final String dockerId;
   private final Object lock = new Object();
+  private final int HTTP_STATUS_OK = 200;
+
 
   public SquareClient(ClientConfig clientConfig) {
     this.squareUrl = "http://" + clientConfig.squareHost + ":" + clientConfig.squarePort;
@@ -39,9 +41,9 @@ public class SquareClient {
    * Method use to send a log message using @{HttpClient} for request
    * 
    * @param: logsModels: a @{LogModel} which represent list log to be use for post request
-   * @return: void
+   * @return: true if log is sucess received by Square API or false if not
    */
-  public void sendInfoLog(List<LogModel> logsModels) {
+  public boolean sendInfoLog(List<LogModel> logsModels) {
     synchronized (lock) {
       var uri = squareUrl + ENDPOINT;
       var body = buildJson(logsModels);
@@ -56,10 +58,10 @@ public class SquareClient {
 
       try {
         var response = client.send(request, BodyHandlers.ofString());
-        System.out.println(response.statusCode());
         System.out.println(response.body());
+        return (response.statusCode() == HTTP_STATUS_OK);
       } catch (IOException | InterruptedException e) {
-        throw new AssertionError();
+        return false;
       }
     }
   }

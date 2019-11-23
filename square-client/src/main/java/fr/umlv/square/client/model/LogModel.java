@@ -1,4 +1,4 @@
-package fr.umlv.square.model;
+package fr.umlv.square.client.model;
 
 /**
  * This class represent model which describe an log object to send to Square API

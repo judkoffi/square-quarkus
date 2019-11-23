@@ -1,14 +1,14 @@
 package fr.umlv.square.client;
 
 import java.util.regex.Pattern;
-import fr.umlv.square.model.LogModel;
+import fr.umlv.square.client.model.LogModel;
 
 /**
  * 
  * Helper class use to parse log from console and get log information (date, level, message)
  *
  */
-public class LogParser {
+class LogParser {
   /*
    * Regex use to extract date of log
    */

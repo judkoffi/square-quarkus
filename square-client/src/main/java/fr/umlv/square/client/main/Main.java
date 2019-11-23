@@ -1,6 +1,7 @@
-package fr.umlv.square.client;
+package fr.umlv.square.client.main;
 
 import java.io.IOException;
+import fr.umlv.square.client.Worker;
 
 /**
  * Main class, main entry for lib client
@@ -16,7 +17,8 @@ public class Main {
        */
       System.exit(-1);
     }
-    
+
+    // TODO: Interrupted thred if app is killed
     while (!Thread.interrupted()) {
       new Thread(() ->
       {

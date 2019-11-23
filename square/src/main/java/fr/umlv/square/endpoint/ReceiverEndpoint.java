@@ -12,6 +12,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import fr.umlv.square.model.request.ClientLogRequest;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
@@ -50,12 +51,10 @@ public class ReceiverEndpoint {
    */
   @POST
   @Path("/send-log/")
-  public void processReceivedLog(ClientLogRequest request) {
+  public Response processReceivedLog(ClientLogRequest request) {
     var originInstance = request.getDockerInstance();
     var imageInfo = dockerService.findImageInfoByDockerInstance(originInstance);
     var logs = request.getLogs();
-    if (logs.isEmpty())
-      return;
 
     var entities = logs
       .stream()//
@@ -63,6 +62,7 @@ public class ReceiverEndpoint {
       .collect(Collectors.toList());
 
     logService.saveLogs(entities);
+    return Response.ok().build();
   }
 
   @GET
