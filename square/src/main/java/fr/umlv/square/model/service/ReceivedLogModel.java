@@ -3,6 +3,7 @@ package fr.umlv.square.model.service;
 /**
  * Model class to map LogModel object send by square client app
  */
+
 public class ReceivedLogModel {
   private String message;
   private String date;

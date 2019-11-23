@@ -5,6 +5,7 @@ import java.util.Objects;
 /**
  * Model class use to store information read from docker ps command
  */
+
 public class ImageInfo {
   private final String imageName;
   private final long created;
@@ -60,11 +61,6 @@ public class ImageInfo {
     return info.squareId == squareId && info.created == created && info.appPort == appPort
         && info.servicePort == servicePort && info.dockerInstance.equals(dockerInstance)
         && info.imageName.equals(imageName);
-  }
-
-  public String toBackUpString() {
-    return "" + imageName + ";" + created + ";" + appPort + ";" + servicePort + ";" + dockerInstance
-        + ";" + squareId;
   }
 
   @Override

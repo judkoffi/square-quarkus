@@ -14,6 +14,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import fr.umlv.square.model.service.ImageInfo;
 
+/**
+ * This class is used to get some information on a process builder execution 
+ */
+
 public class ProcessBuilderHelper {
   private final ProcessBuilder processBuilder;
 
@@ -33,6 +37,7 @@ public class ProcessBuilderHelper {
     return builder.toString();
   }
 
+  // Method used to create an ImageInfo from the String output of the "ps" command  
   private static ImageInfo psLinetoImageInfo(String[] tokens) {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
@@ -55,10 +60,9 @@ public class ProcessBuilderHelper {
 
   /**
    * Extract one line of the ps command
-   * 
    * @param psOutput
    * @param predicate
-   * @return
+   * @return a List of ImageInfo
    */
   public static List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
     var regex = "([A-Z\\s]+?)($|\\s{2,})";
@@ -73,10 +77,20 @@ public class ProcessBuilderHelper {
       .collect(Collectors.toList());
   }
 
+  /**
+   * Allow to get a List of ImageInfo from the String output of the "ps" command
+   * @param lines : String which come from the String output of the "ps" command
+   * @return : List of ImageInfo
+   */
   public List<ImageInfo> dockerPsToImageInfo(String lines) {
     return parseDockerPs(lines, (e) -> true);
   }
 
+  /**
+   * Allow to executed a command with a processBuilder which wait until the command has finished
+   * @param cmd : String : the command to execute
+   * @return boolean : true if the command ended well, false otherwise
+   */
   public boolean execWaitForCommand(String cmd) {
     try {
       var exitValue = processBuilder.command("bash", "-c", cmd).start().waitFor();
@@ -86,6 +100,11 @@ public class ProcessBuilderHelper {
     }
   }
 
+  /**
+   * Allow to get the output of a command executed
+   * @param cmd : String : the command to execute
+   * @return String : the output of the command
+   */
   public String execOutputCommand(String cmd) {
     try {
       var process = processBuilder.command("bash", "-c", cmd).start();
@@ -97,6 +116,10 @@ public class ProcessBuilderHelper {
     }
   }
 
+  /**
+   * Allow to get the path where the current processBuilder execute its commands
+   * @return : String which is the path where the current processBuilder execute its commands
+   */
   public String getRootPah() {
     return processBuilder.directory().getAbsolutePath() + '/';
   }

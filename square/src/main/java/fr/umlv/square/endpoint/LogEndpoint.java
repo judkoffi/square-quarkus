@@ -54,7 +54,7 @@ public class LogEndpoint {
     // TODO: Improve filter by date method and use Date typeF
     System.out.println("---------------------------------------");
     var result = logService
-      .getLogsFiltedByTime(time)
+      .getLogsFilteredByTime(time)
       .stream()
       .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
       .map(logTimeResponse -> logTimeResponse.toJson())
@@ -78,7 +78,7 @@ public class LogEndpoint {
         .build();
 
     var result = logService
-      .getLogsFiltedByTime(time)
+      .getLogsFilteredByTime(time)
       .stream()
       .filter(getPredicate(filter))
       .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//

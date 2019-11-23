@@ -8,11 +8,11 @@ import org.hibernate.annotations.Type;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
 /**
- * This class represent a model of logs tuples in database stored in database table
+ * This class represent a model of logs tuples stored in database table LogTable
  */
 
 @Entity
-@Table(name = "LogTable")
+@Table(name = "LogTable")   
 public class LogEntity extends PanacheEntity {
 
   @Column(name = "squareId")

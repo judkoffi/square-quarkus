@@ -18,6 +18,10 @@ import fr.umlv.square.model.response.RunningInstanceInfo;
 import fr.umlv.square.model.service.ImageInfo;
 import fr.umlv.square.util.ProcessBuilderHelper;
 
+/**
+ * This class is used as an interface between the application square and the Docker
+ */
+
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
   private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
@@ -75,6 +79,7 @@ public class DockerService {
       .concat("CMD java -jar client.jar");
   }
 
+  // This methods generate and create docker file of an application with the name : appName and which runs on the pot : appPort
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
     var dockerFilePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var dockerFileContent = buildDockerFileContent(appName, appPort);
@@ -90,16 +95,19 @@ public class DockerService {
     return true;
   }
 
+  // This methods execute the command docker build to build an image
   private boolean buildImage(String imagePath, String appName) {
     var builImageCommand = "docker build -f " + imagePath + " -t " + appName + " ./";
     return processHelper.execWaitForCommand(builImageCommand);
   }
 
+  // This method randomly generate an id which will be attached at the image name of the application to be unique
   private int generateId() {
     var id = 1 + new Random().nextInt(Integer.MAX_VALUE);
     return (!runningInstanceMap.containsKey(id)) ? id : generateId();
   }
 
+  // This method randomly generate a port on which the application will run into the docker
   private static int generateRandomPort() {
     ServerSocket s = null;
     try {
@@ -118,6 +126,7 @@ public class DockerService {
   }
 
   // TODO: Remove modulo
+  // This method execute the command docker run to run an image into a docker
   private int runImage(String imageName, int appPort, int servicePort) {
     var id = generateId() % 500;
     var uniqueName = imageName + "-" + id;
@@ -130,6 +139,7 @@ public class DockerService {
     return status.equals("true") ? id : -1;
   }
 
+  // This method return an ImageInfo which is the result of the docker run command
   private Optional<ImageInfo> runBuildedImage(String appName, int appPort) {
     var servicePort = generateRandomPort();
     var runnedId = runImage(appName, appPort, servicePort);
@@ -143,7 +153,7 @@ public class DockerService {
           runnedId));
   }
 
-
+  // This method return a String which represents the time elapsed from the begin of the application start
   private String buildElapsedTime(long diff) {
     var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     calendar.setTimeInMillis(diff);
@@ -152,7 +162,11 @@ public class DockerService {
     return minutes + "m" + calendar.get(Calendar.SECOND) + "s";
   }
 
-
+  /**
+   * Allow to get the ImageInfo corresponding to the name of the docker instance
+   * @param dockerInstance : String the name of the docker instance
+   * @return an ImageInfo corresponding to the name of the docker instance
+   */
   public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {
     var imageInfo = runningInstanceMap
       .entrySet()
@@ -162,19 +176,27 @@ public class DockerService {
     return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
   }
 
+  /**
+   * Allow to fill the map of running instance information
+   * @param instance : ImageInfo which is the object to fill the map of running instance information
+   */
   void putInstance(ImageInfo instance) {
     runningInstanceMap.put(instance.getSquareId(), instance);
   }
 
+  /**
+   * Allow to get the map of running instance information
+   * @return : HashMap<Integer, ImageInfo> : the map which associate an Integer (the id of the instance) to an ImageInfo
+   */
   HashMap<Integer, ImageInfo> getRunningInstanceMap() {
     return runningInstanceMap;
   }
 
   /**
+   * Execute all the processus to run a container
    * @param appName: name of application to be deploy in docker container
    * @param port: port of application redirected form docker container to current system
    * @param defaultPort: port of application to be deploy in docker container
-   * 
    * @return {@link Optional} {@link DeployResponse}: information of ran container
    */
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
@@ -201,7 +223,12 @@ public class DockerService {
     }
   }
 
+  /**
+   * Return the list of RunningInstanceInfo which are contained in the docker by using the docker ps command
+   * @return a List of RunningInstanceInfo
+   */
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
+    // format the docker ps command to get more information about the container
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
 
@@ -219,6 +246,11 @@ public class DockerService {
     return Optional.of(list);
   }
 
+  /**
+   * Return the RunningInstanceInfo of the application the user want to stop
+   * @param key : int which is the id of the instance the user want to stop
+   * @return : RunningInstanceInfo which the application the user want to stop
+   */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.getDockerInstance();
