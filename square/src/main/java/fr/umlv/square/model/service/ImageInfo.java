@@ -62,6 +62,11 @@ public class ImageInfo {
         && info.imageName.equals(imageName);
   }
 
+  public String toBackUpString() {
+    return "" + imageName + ";" + created + ";" + appPort + ";" + servicePort + ";" + dockerInstance
+        + ";" + squareId;
+  }
+
   @Override
   public String toString() {
     return "ImageInfo [imageName=" + imageName + ", created=" + created + ", appPort=" + appPort

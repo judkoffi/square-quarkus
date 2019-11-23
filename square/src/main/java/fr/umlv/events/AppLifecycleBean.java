@@ -21,12 +21,12 @@ public class AppLifecycleBean {
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting... and PID: " + ProcessHandle.current().pid());
-    // backUpService.readSavedInstance();
+    backUpService.readSavedInstance();
   }
 
   void onStop(@Observes ShutdownEvent ev) {
     LOGGER.info("Create docker instance backup ....");
-    // backUpService.saveRunningInstance();
+    backUpService.saveRunningInstance();
   }
 
 }
