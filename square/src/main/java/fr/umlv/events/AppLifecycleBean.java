@@ -25,8 +25,7 @@ public class AppLifecycleBean {
   }
 
   void onStop(@Observes ShutdownEvent ev) {
-    LOGGER.info("Create docker instance backup ....");
-    backUpService.saveRunningInstance();
+
   }
 
 }

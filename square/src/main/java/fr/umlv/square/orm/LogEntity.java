@@ -14,7 +14,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 @Entity
 @Table(name = "LogTable")
 public class LogEntity extends PanacheEntity {
-  
+
   @Column(name = "squareId")
   private int squareId;
 

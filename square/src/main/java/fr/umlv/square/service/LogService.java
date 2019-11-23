@@ -6,8 +6,6 @@ import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
@@ -33,10 +31,6 @@ public class LogService {
   @Transactional
   public void saveLogs(List<LogEntity> entities) {
     databaseRepository.persist(entities.stream());
-  }
-
-  public List<LogEntity> findLogs(Predicate<LogEntity> predicate) {
-    return databaseRepository.listAll().stream().filter(predicate).collect(Collectors.toList());
   }
 
   /**
