@@ -18,6 +18,10 @@ import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.service.LogService;
 
+/**
+ * This class defines all the endpoints which begin with "/container-log"
+ */
+
 @Path("/container-log")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -32,6 +36,7 @@ public class ReceiverEndpoint {
     this.logService = logService;
   }
 
+  // Convert a date as a String into a date as a Timestamp
   private static Timestamp convertStringToTimestamp(String strDate) {
     try {
       var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
@@ -46,7 +51,6 @@ public class ReceiverEndpoint {
 
   /**
    * Endpoint to receive log from square-client lib store inside each docker instance
-   * 
    * @param request: an {@ClientLogRequest} which contain request from an docker instance
    */
   @POST
@@ -65,6 +69,11 @@ public class ReceiverEndpoint {
     return Response.ok().build();
   }
 
+  /**
+   * Endpoint to receive all the logs of the app
+   * @param request: an {@ClientLogRequest} which contain request from an docker instance : useless here
+   * @return a List of logs
+   */
   @GET
   @Path("/logs/")
   public List<LogEntity> list(ClientLogRequest request) {

@@ -15,6 +15,10 @@ import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.LogService;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
+/**
+ * This class defines all the endpoints which begin with "/log"
+ */
+
 @Path("/logs")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -27,18 +31,18 @@ public class LogEndpoint {
     this.logService = logService;
   }
 
+  // Describe on which element the user want to do filter the logs
   private static enum FilterType {
     ID, APPLICATION, DOCKER, UNKNOWN
   };
 
-  @GET
-  @Path("/{time}")
   /**
    * Endpoint who gives logs since a time given as argument
-   * 
    * @param time : the last minutes for which the logs are wanted
    * @return a Response in JSON
    */
+  @GET
+  @Path("/{time}")
   public Response list(@PathParam("time") String time) {
     if (time == null || !isNumeric(time))
       return Response
@@ -47,7 +51,7 @@ public class LogEndpoint {
         .build();
 
 
-    // TODO: Improve filter by date metho and use Date typeF
+    // TODO: Improve filter by date method and use Date typeF
     System.out.println("---------------------------------------");
     var result = logService
       .getLogsFiltedByTime(time)
@@ -58,15 +62,14 @@ public class LogEndpoint {
     return Response.ok().entity(result.toString()).build();
   }
 
-  @GET
-  @Path("/{time}/{filter}")
   /**
    * Endpoint who gives logs since a time given as argument
-   * 
    * @param time : the last minutes for which the logs are wanted
    * @param filter : a filter by id, app name or an instance name
    * @return a Response in JSON
    */
+  @GET
+  @Path("/{time}/{filter}")
   public Response listFilter(@PathParam("time") String time, @PathParam("filter") String filter) {
     if (time == null || filter == null || !isNumeric(time))
       return Response
@@ -87,7 +90,6 @@ public class LogEndpoint {
 
   /**
    * Give the predicate which allow to filter logs by a String
-   * 
    * @param filter : the String used to filter logs
    * @return a Predicate corresponding to the type of filter wanted
    */
@@ -108,7 +110,6 @@ public class LogEndpoint {
 
   /**
    * Allow to know if a String is a numeric. Uses to define if the user want to filter logs by an id
-   * 
    * @param filter : a String given by the user to filter the logs
    * @return true if the filter is numeric or false otherwise
    */
@@ -118,7 +119,6 @@ public class LogEndpoint {
 
   /**
    * Find the type of filter to do corresponding to the filter given as argument
-   * 
    * @param filter : the filter given by the user
    * @return the type of filter corresponding to the filter given as argument
    */

@@ -16,13 +16,17 @@ import fr.umlv.square.model.request.StopInstanceRequest;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
+/**
+ * This class defines all the endpoints which begin with "/app"
+ */
+
 @Path("/app")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class RunningAppEndpoint {
 
-  private final Validator validator;
-  private final DockerService dockerService;
+  private final Validator validator;    // Allow to determine if a request is good
+  private final DockerService dockerService;    // The object dockerService used in the application
 
   @Inject
   public RunningAppEndpoint(DockerService dockerService, Validator validator) {
@@ -34,7 +38,6 @@ public class RunningAppEndpoint {
   @Path("/deploy")
   /**
    * Endpoint to start an app
-   * 
    * @param request : a JSON which defines the name of the app and its port number
    * @return : a Response in JSON which give information about the app deployed
    */
@@ -59,7 +62,6 @@ public class RunningAppEndpoint {
   @Path("/list")
   /**
    * Endpoint to list all the instances of the docker container
-   * 
    * @return : a Response in JSON with all the informations of the app listed
    */
   public Response list() {
@@ -74,7 +76,6 @@ public class RunningAppEndpoint {
   @Path("/stop")
   /**
    * Endpoint to stop an app
-   * 
    * @param request : a JSON which give the id of the app to stop
    * @return : a Response in JSON which give the information of the app at the moment of its stop
    */
@@ -93,5 +94,4 @@ public class RunningAppEndpoint {
 
     return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity(result).build();
   }
-
 }

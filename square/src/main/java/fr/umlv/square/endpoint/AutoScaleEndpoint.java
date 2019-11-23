@@ -13,6 +13,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
+/**
+ * This class defines all the endpoints which begin with "/auto-scale"
+ */
+
 @Path("/auto-scale")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -42,7 +46,6 @@ public class AutoScaleEndpoint {
   @Path("/status")
   /**
    * Endpoint to know what are the actions that the auto scale has to do
-   * 
    * @return a Response in JSON
    */
   public Response status() {
@@ -57,7 +60,6 @@ public class AutoScaleEndpoint {
   @Path("/stop")
   /**
    * Endpoint to stop auto scale
-   * 
    * @return a Response JSON which give the number of instance handled by auto scale
    */
   public Response stop() {
@@ -67,5 +69,4 @@ public class AutoScaleEndpoint {
     hashmap.put("demo:8083", 1);
     return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
   }
-
 }

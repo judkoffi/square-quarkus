@@ -9,7 +9,11 @@ import fr.umlv.square.service.InstanceBackUpService;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
-@ApplicationScoped
+/**
+ * Class used to execute method at the start-up and the stop of square
+ *
+ */
+@ApplicationScoped // describe the whole square application entity
 public class AppLifecycleBean {
   private final InstanceBackUpService backUpService;
   private static final Logger LOGGER = LoggerFactory.getLogger(AppLifecycleBean.class);
@@ -19,6 +23,10 @@ public class AppLifecycleBean {
     this.backUpService = backUpService;
   }
 
+  /**
+   * This method is executed when the app starts
+   * @param ev : the event when the app starts
+   */
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting... and PID: " + ProcessHandle.current().pid());
     backUpService.readSavedInstance();
