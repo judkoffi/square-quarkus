@@ -74,9 +74,8 @@ public class LogService {
   private static Timestamp convertStringToTimestamp(String strDate) {
     try {
       var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-      var date = formatter.parse(strDate);
-      var timeStampDate = new Timestamp(date.getTime());
-      return timeStampDate;
+      var date = formatter.parse(strDate); 
+      return new Timestamp(date.getTime());
     } catch (ParseException e) {
       System.out.println("Exception :" + e);
       return null;

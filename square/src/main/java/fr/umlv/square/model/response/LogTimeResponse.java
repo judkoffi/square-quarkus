@@ -28,7 +28,7 @@ public class LogTimeResponse extends AbstractResponse {
   }
   
   // Return a string date with the desired format
-  private String formatTimestamp(String timestamp) {
+  private String formatTimestamp() {
     Date date = new Date(Timestamp.valueOf(timestamp).getTime());
     SimpleDateFormat sdf;
     sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -36,12 +36,12 @@ public class LogTimeResponse extends AbstractResponse {
     return sdf.format(date);
   }
 
-  @Override
   /**
    * build a JSON string using all fields
    */
+  @Override
   String buildJson() {
     return super.buildJson() + ", \"message\":\"" + message + "\"" + ", \"timestamp\":\""
-        + formatTimestamp(timestamp) + "\"";
+        + formatTimestamp() + "\"";
   }
 }

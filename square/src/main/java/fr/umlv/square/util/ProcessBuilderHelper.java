@@ -72,8 +72,8 @@ public class ProcessBuilderHelper {
       .stream(lines)
       .skip(1)
       .filter(predicate)
-      .map((elt) -> elt.split(regex))
-      .map((tokens) -> psLinetoImageInfo(tokens))
+      .map(elt -> elt.split(regex))
+      .map(ProcessBuilderHelper::psLinetoImageInfo)
       .collect(Collectors.toList());
   }
 
@@ -83,7 +83,7 @@ public class ProcessBuilderHelper {
    * @return : List of ImageInfo
    */
   public List<ImageInfo> dockerPsToImageInfo(String lines) {
-    return parseDockerPs(lines, (e) -> true);
+    return parseDockerPs(lines, e -> true);
   }
 
   /**

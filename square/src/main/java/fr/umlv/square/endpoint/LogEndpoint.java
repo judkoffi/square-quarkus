@@ -32,9 +32,9 @@ public class LogEndpoint {
   }
 
   // Describe on which element the user want to do filter the logs
-  private static enum FilterType {
+  private enum FilterType {
     ID, APPLICATION, DOCKER, UNKNOWN
-  };
+  }
 
   /**
    * Endpoint who gives logs since a time given as argument
@@ -56,8 +56,8 @@ public class LogEndpoint {
     var result = logService
       .getLogsFilteredByTime(time)
       .stream()
-      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
-      .map(logTimeResponse -> logTimeResponse.toJson())
+      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
+      .map(LogTimeResponse::toJson)
       .collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();
   }
@@ -81,8 +81,8 @@ public class LogEndpoint {
       .getLogsFilteredByTime(time)
       .stream()
       .filter(getPredicate(filter))
-      .map((entity) -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
-      .map(logTimeResponse -> logTimeResponse.toJson())
+      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
+      .map(LogTimeResponse::toJson)
       .collect(Collectors.toList());
 
     return Response.ok().entity(result.toString()).build();
@@ -97,14 +97,14 @@ public class LogEndpoint {
     var filterType = findFilterType(filter);
     switch (filterType) {
       case ID:
-        return (e) -> e.getSquareId() == Integer.parseInt(filter);
+        return e -> e.getSquareId() == Integer.parseInt(filter);
       case APPLICATION:
         //args: todomvc:8082
-        return (e) -> ("" + e.getAppName() + ":" + e.getPort()).equals(filter);
+        return e -> ("" + e.getAppName() + ":" + e.getPort()).equals(filter);
       case DOCKER:
-        return (e) -> e.getDockerInstance().equals(filter);
+        return e -> e.getDockerInstance().equals(filter);
       default:
-        return (e) -> false;
+        return e -> false;
     }
   }
 
