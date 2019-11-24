@@ -19,7 +19,8 @@ public class InstanceBackUpService {
   }
 
   /**
-   * Read the docker ps command and stored all of the instances found into the hashmap of docker instances
+   * Read the docker ps command and stored all of the instances found into the hashmap of docker
+   * instances
    */
   public void readSavedInstance() {
     var helper = new ProcessBuilderHelper();
@@ -31,6 +32,6 @@ public class InstanceBackUpService {
     ProcessBuilderHelper
       .parseDockerPs(output, p -> true)
       .stream()
-      .forEach(imageInfo -> dockerService.putInstance(imageInfo));
+      .forEach(dockerService::putInstance);
   }
 }

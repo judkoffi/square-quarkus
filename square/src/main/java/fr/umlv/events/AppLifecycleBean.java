@@ -6,7 +6,6 @@ import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.umlv.square.service.InstanceBackUpService;
-import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
 /**
@@ -25,15 +24,12 @@ public class AppLifecycleBean {
 
   /**
    * This method is executed when the app starts
+   * 
    * @param ev : the event when the app starts
    */
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting... and PID: {}", ProcessHandle.current().pid());
     backUpService.readSavedInstance();
-  }
-
-  void onStop(@Observes ShutdownEvent ev) {
-
   }
 
 }

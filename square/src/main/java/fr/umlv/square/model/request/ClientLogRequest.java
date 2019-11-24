@@ -17,10 +17,10 @@ public class ClientLogRequest {
   @NotBlank
   private List<ReceivedLogModel> logs;
 
-  public ClientLogRequest() {}
 
   /**
    * Allow to get all the log of a docker instance
+   * 
    * @return the List of ReceivedLogModel
    */
   public List<ReceivedLogModel> getLogs() {
@@ -29,6 +29,7 @@ public class ClientLogRequest {
 
   /**
    * Allow to get the name of the docker instance
+   * 
    * @return a String which is the name of the docker instance
    */
   public String getDockerInstance() {
@@ -37,6 +38,7 @@ public class ClientLogRequest {
 
   /**
    * Allow to define the name of the docker instance
+   * 
    * @param dockerInstance : String : the name of the docker instance
    */
   public void setDockerInstance(String dockerInstance) {
@@ -45,6 +47,7 @@ public class ClientLogRequest {
 
   /**
    * ALlow to set a List of ReceivedLogModel of a docker instance
+   * 
    * @param logs : List<ReceivedLogModel : the list of ReceivedLogModel of a docker instance
    */
   public void setLogs(List<ReceivedLogModel> logs) {

@@ -14,7 +14,7 @@ public class StopInstanceRequest {
   @Positive
   @Digits(fraction = 0, integer = Integer.MAX_VALUE)
   private int id;
-  
+
   public StopInstanceRequest() {}
 
   public StopInstanceRequest(int id) {
@@ -23,6 +23,7 @@ public class StopInstanceRequest {
 
   /**
    * Allow to get the id of an instance top stop
+   * 
    * @return : int : the id of an instance to stop
    */
   public int getId() {
@@ -31,6 +32,7 @@ public class StopInstanceRequest {
 
   /**
    * Allow to set the if of a docker instance top stop
+   * 
    * @param id : int : the id of an instance top stop
    */
   public void setId(int id) {

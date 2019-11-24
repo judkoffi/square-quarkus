@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * Class use to represent as an java object a super class of all Square response. It use to
- * factoring the common fields of all Square API response model
+ * Class use to represent as an java object a super class of all Square response. It use to share
+ * the common fields of all Square API response model
  */
 
 abstract class AbstractResponse {
@@ -26,10 +26,11 @@ abstract class AbstractResponse {
 
   /**
    * Method used to build a JSON string using all fields
+   * 
    * @return @{String} which represent json content of an @{AbstractResponse}
    */
   String buildJson() {
-    StringJoiner joiner = new StringJoiner(", ");
+    var joiner = new StringJoiner(", ");
     joiner.add("\"id\": " + id);
     joiner.add("\"app\": \"" + appName + "\"");
     joiner.add("\"port\": " + port);
@@ -52,6 +53,7 @@ abstract class AbstractResponse {
 
   /**
    * Method uses to finalize build of JSON string using all fields
+   * 
    * @return @{String} which represent json string of an @{AbstractResponse}
    */
   public String toJson() {

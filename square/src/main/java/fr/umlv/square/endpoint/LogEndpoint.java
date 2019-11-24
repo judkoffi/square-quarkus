@@ -38,6 +38,7 @@ public class LogEndpoint {
 
   /**
    * Endpoint who gives logs since a time given as argument
+   * 
    * @param time : the last minutes for which the logs are wanted
    * @return a Response in JSON
    */
@@ -51,11 +52,12 @@ public class LogEndpoint {
         .build();
 
 
-    // TODO: Improve filter by date method and use Date typeF
     var result = logService
       .getLogsFilteredByTime(time)
       .stream()
-      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
+      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(),
+          entity.getPort(), entity.getServicePort(), entity.getDockerInstance(),
+          entity.getMessage(), entity.getDate().toString()))//
       .map(LogTimeResponse::toJson)
       .collect(Collectors.toList());
     return Response.ok().entity(result.toString()).build();
@@ -63,6 +65,7 @@ public class LogEndpoint {
 
   /**
    * Endpoint who gives logs since a time given as argument
+   * 
    * @param time : the last minutes for which the logs are wanted
    * @param filter : a filter by id, app name or an instance name
    * @return a Response in JSON
@@ -80,7 +83,9 @@ public class LogEndpoint {
       .getLogsFilteredByTime(time)
       .stream()
       .filter(getPredicate(filter))
-      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(), entity.getPort(), entity.getServicePort(), entity.getDockerInstance(), entity.getMessage(), entity.getDate().toString()))//
+      .map(entity -> new LogTimeResponse(entity.getSquareId(), entity.getAppName(),
+          entity.getPort(), entity.getServicePort(), entity.getDockerInstance(),
+          entity.getMessage(), entity.getDate().toString()))//
       .map(LogTimeResponse::toJson)
       .collect(Collectors.toList());
 
@@ -89,6 +94,7 @@ public class LogEndpoint {
 
   /**
    * Give the predicate which allow to filter logs by a String
+   * 
    * @param filter : the String used to filter logs
    * @return a Predicate corresponding to the type of filter wanted
    */
@@ -98,7 +104,7 @@ public class LogEndpoint {
       case ID:
         return e -> e.getSquareId() == Integer.parseInt(filter);
       case APPLICATION:
-        //args: todomvc:8082
+        // args: todomvc:8082
         return e -> ("" + e.getAppName() + ":" + e.getPort()).equals(filter);
       case DOCKER:
         return e -> e.getDockerInstance().equals(filter);
@@ -109,6 +115,7 @@ public class LogEndpoint {
 
   /**
    * Allow to know if a String is a numeric. Uses to define if the user want to filter logs by an id
+   * 
    * @param filter : a String given by the user to filter the logs
    * @return true if the filter is numeric or false otherwise
    */
@@ -118,6 +125,7 @@ public class LogEndpoint {
 
   /**
    * Find the type of filter to do corresponding to the filter given as argument
+   * 
    * @param filter : the filter given by the user
    * @return the type of filter corresponding to the filter given as argument
    */

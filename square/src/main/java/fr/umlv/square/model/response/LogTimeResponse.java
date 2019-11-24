@@ -23,17 +23,12 @@ public class LogTimeResponse extends AbstractResponse {
     this.timestamp = Objects.requireNonNull(timestamp);
   }
 
-  public String getTimestamp() {
-    return timestamp;
-  }
-  
   // Return a string date with the desired format
   private String formatTimestamp() {
-    Date date = new Date(Timestamp.valueOf(timestamp).getTime());
-    SimpleDateFormat sdf;
-    sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    sdf.setTimeZone(TimeZone.getTimeZone("CET"));
-    return sdf.format(date);
+    var date = new Date(Timestamp.valueOf(timestamp).getTime());
+    var formattor = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    formattor.setTimeZone(TimeZone.getTimeZone("CET"));
+    return formattor.format(date);
   }
 
   /**

@@ -12,7 +12,7 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
  */
 
 @Entity
-@Table(name = "LogTable")   
+@Table(name = "LogTable")
 public class LogEntity extends PanacheEntity {
 
   @Column(name = "squareId")

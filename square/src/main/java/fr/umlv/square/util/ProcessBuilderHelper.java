@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import fr.umlv.square.model.service.ImageInfo;
 
 /**
- * This class is used to get some information on a process builder execution 
+ * This class is used to get some information on a process builder execution
  */
 
 public class ProcessBuilderHelper {
@@ -37,7 +37,7 @@ public class ProcessBuilderHelper {
     return builder.toString();
   }
 
-  // Method used to create an ImageInfo from the String output of the "ps" command  
+  // Method used to create an ImageInfo from the String output of the "ps" command
   private static ImageInfo psLinetoImageInfo(String[] tokens) {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
@@ -60,6 +60,7 @@ public class ProcessBuilderHelper {
 
   /**
    * Extract one line of the ps command
+   * 
    * @param psOutput
    * @param predicate
    * @return a List of ImageInfo
@@ -79,6 +80,7 @@ public class ProcessBuilderHelper {
 
   /**
    * Allow to get a List of ImageInfo from the String output of the "ps" command
+   * 
    * @param lines : String which come from the String output of the "ps" command
    * @return : List of ImageInfo
    */
@@ -88,6 +90,7 @@ public class ProcessBuilderHelper {
 
   /**
    * Allow to executed a command with a processBuilder which wait until the command has finished
+   * 
    * @param cmd : String : the command to execute
    * @return boolean : true if the command ended well, false otherwise
    */
@@ -102,6 +105,7 @@ public class ProcessBuilderHelper {
 
   /**
    * Allow to get the output of a command executed
+   * 
    * @param cmd : String : the command to execute
    * @return String : the output of the command
    */
@@ -118,6 +122,7 @@ public class ProcessBuilderHelper {
 
   /**
    * Allow to get the path where the current processBuilder execute its commands
+   * 
    * @return : String which is the path where the current processBuilder execute its commands
    */
   public String getRootPah() {

@@ -23,8 +23,4 @@ public class RunningInstanceInfo extends AbstractResponse {
     return super.buildJson() + ", \"elapsed-time\":\"" + elapsedTime + "\"";
   }
 
-  @Override
-  public String toJson() {
-    return "{" + buildJson() + "}";
-  }
 }

@@ -14,10 +14,9 @@ public class DeployInstanceRequest {
   @Pattern(regexp = "[^\\:]+:[0-9]+") // app must match with regexp, ex: appname:port
   private String app;
 
-  public DeployInstanceRequest() {}
-
   /**
    * Allow to get the whole application name : appname:port
+   * 
    * @return : String contains the whole application name : appname:port
    */
   public String getApp() {
@@ -26,14 +25,16 @@ public class DeployInstanceRequest {
 
   /**
    * Allow to set the application name
+   * 
    * @param app : String : the application name to set
    */
-  public void setApp(String app) {  // because app is private
+  public void setApp(String app) { // because app is private
     this.app = app;
   }
 
   /**
    * Allow to get only the application name
+   * 
    * @return : String which contains only the application name
    */
   public String getAppName() {
@@ -42,6 +43,7 @@ public class DeployInstanceRequest {
 
   /**
    * Allow to get the port of the application
+   * 
    * @return : int which is the port of the application
    */
   public int getPort() {

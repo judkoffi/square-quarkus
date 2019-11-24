@@ -4,7 +4,6 @@ import static java.util.stream.Collectors.toMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.json.bind.Jsonb;
 import javax.json.bind.JsonbBuilder;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -33,8 +32,9 @@ public class AutoScaleEndpoint {
    * @param request the JSON request
    * @return a Response in JSON
    */
-  public Response update(Map<String, Integer> request) { // use a map because we don't know the of the key
-    try(Jsonb jsonBuilder = JsonbBuilder.create()){
+  public Response update(Map<String, Integer> request) { // use a map because we don't know the of
+                                                         // the key
+    try (var jsonBuilder = JsonbBuilder.create()) {
       var map = request
         .entrySet()
         .stream()
@@ -56,7 +56,7 @@ public class AutoScaleEndpoint {
    * @return a Response in JSON
    */
   public Response status() {
-    try(Jsonb jsonBuilder = JsonbBuilder.create()){
+    try (var jsonBuilder = JsonbBuilder.create()) {
       var hashmap = new HashMap<String, String>();
       hashmap.put("todomvc:8082", "no action");
       hashmap.put("demo:8083", "need to stop 1 instance(s)");
@@ -74,7 +74,7 @@ public class AutoScaleEndpoint {
    * @return a Response JSON which give the number of instance handled by auto scale
    */
   public Response stop() {
-    try(Jsonb jsonBuilder = JsonbBuilder.create()){
+    try (var jsonBuilder = JsonbBuilder.create()) {
       var hashmap = new HashMap<String, Integer>();
       hashmap.put("todomvc:8082", 2);
       hashmap.put("demo:8083", 1);

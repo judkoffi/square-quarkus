@@ -53,6 +53,7 @@ public class ReceiverEndpoint {
 
   /**
    * Endpoint to receive log from square-client lib store inside each docker instance
+   * 
    * @param request: an {@ClientLogRequest} which contain request from an docker instance
    */
   @POST
@@ -63,8 +64,10 @@ public class ReceiverEndpoint {
     var logs = request.getLogs();
 
     var entities = logs
-      .stream()//
-      .map(log -> new LogEntity(imageInfo.getSquareId(), convertStringToTimestamp(log.getDate()), log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(), imageInfo.getAppPort(), imageInfo.getServicePort()))//
+      .stream()
+      .map(log -> new LogEntity(imageInfo.getSquareId(), convertStringToTimestamp(log.getDate()),
+          log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(),
+          imageInfo.getAppPort(), imageInfo.getServicePort()))
       .collect(Collectors.toList());
 
     logService.saveLogs(entities);
@@ -73,7 +76,9 @@ public class ReceiverEndpoint {
 
   /**
    * Endpoint to receive all the logs of the app
-   * @param request: an {@ClientLogRequest} which contain request from an docker instance : useless here
+   * 
+   * @param request: an {@ClientLogRequest} which contain request from an docker instance : useless
+   *        here
    * @return a List of logs
    */
   @GET

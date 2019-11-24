@@ -82,7 +82,8 @@ public class DockerService {
       .concat("CMD java -jar client.jar");
   }
 
-  // This methods generate and create docker file of an application with the name : appName and which runs on the pot : appPort
+  // This methods generate and create docker file of an application with the name : appName and
+  // which runs on the pot : appPort
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
     var dockerFilePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var dockerFileContent = buildDockerFileContent(appName, appPort);
@@ -104,7 +105,8 @@ public class DockerService {
     return processHelper.execWaitForCommand(builImageCommand);
   }
 
-  // This method randomly generate an id which will be attached at the image name of the application to be unique
+  // This method randomly generate an id which will be attached at the image name of the application
+  // to be unique
   private int generateId() {
     var id = 1 + new Random().nextInt(Integer.MAX_VALUE);
     return (!runningInstanceMap.containsKey(id)) ? id : generateId();
@@ -112,19 +114,10 @@ public class DockerService {
 
   // This method randomly generate a port on which the application will run into the docker
   private static int generateRandomPort() {
-    ServerSocket s = null;
-    try {
-      s = new ServerSocket(0);
+    try (var s = new ServerSocket(0)) {
       return s.getLocalPort();
-    } catch (Exception e) {
+    } catch (IOException e) {
       throw new RuntimeException(e);
-    } finally {
-      assert s != null;
-      try {
-        s.close();
-      } catch (IOException e) {
-        throw new AssertionError(e);
-      }
     }
   }
 
@@ -156,7 +149,8 @@ public class DockerService {
           runnedId));
   }
 
-  // This method return a String which represents the time elapsed from the begin of the application start
+  // This method return a String which represents the time elapsed from the begin of the application
+  // start
   private String buildElapsedTime(long diff) {
     var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     calendar.setTimeInMillis(diff);
@@ -167,6 +161,7 @@ public class DockerService {
 
   /**
    * Allow to get the ImageInfo corresponding to the name of the docker instance
+   * 
    * @param dockerInstance : String the name of the docker instance
    * @return an ImageInfo corresponding to the name of the docker instance
    */
@@ -181,6 +176,7 @@ public class DockerService {
 
   /**
    * Allow to fill the map of running instance information
+   * 
    * @param instance : ImageInfo which is the object to fill the map of running instance information
    */
   void putInstance(ImageInfo instance) {
@@ -189,7 +185,9 @@ public class DockerService {
 
   /**
    * Allow to get the map of running instance information
-   * @return : HashMap<Integer, ImageInfo> : the map which associate an Integer (the id of the instance) to an ImageInfo
+   * 
+   * @return : HashMap<Integer, ImageInfo> : the map which associate an Integer (the id of the
+   *         instance) to an ImageInfo
    */
   HashMap<Integer, ImageInfo> getRunningInstanceMap() {
     return runningInstanceMap;
@@ -197,6 +195,7 @@ public class DockerService {
 
   /**
    * Execute all the processus to run a container
+   * 
    * @param appName: name of application to be deploy in docker container
    * @param port: port of application redirected form docker container to current system
    * @param defaultPort: port of application to be deploy in docker container
@@ -215,7 +214,7 @@ public class DockerService {
       var info = imageInfo.get();
       runningInstanceMap.put(info.getSquareId(), info);
 
-      LOGGER.info("{}", info);
+      LOGGER.info("new running instance {}", info);
 
       return Optional
         .of(new DeployResponse(info.getSquareId(), appName, appPort, info.getServicePort(),
@@ -227,7 +226,9 @@ public class DockerService {
   }
 
   /**
-   * Return the list of RunningInstanceInfo which are contained in the docker by using the docker ps command
+   * Return the list of RunningInstanceInfo which are contained in the docker by using the docker ps
+   * command
+   * 
    * @return a List of RunningInstanceInfo
    */
   public Optional<List<RunningInstanceInfo>> getRunnningList() {
@@ -243,7 +244,9 @@ public class DockerService {
     var list = ProcessBuilderHelper
       .parseDockerPs(cmdResult, p -> true)
       .stream()
-      .map(mapper -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(), mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(), buildElapsedTime(mapper.getCreated())))//
+      .map(mapper -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(),
+          mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(),
+          buildElapsedTime(mapper.getCreated())))//
       .collect(Collectors.toList());
 
     return Optional.of(list);
@@ -251,9 +254,11 @@ public class DockerService {
 
   /**
    * Return the RunningInstanceInfo of the application the user want to stop
+   * 
    * @param key : int which is the id of the instance the user want to stop
    * @return : RunningInstanceInfo which the application the user want to stop
    */
+  // TODO: Fix elapsed-time when hashmap was fill after quarkus restart
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.getDockerInstance();
@@ -268,5 +273,14 @@ public class DockerService {
       .of(new RunningInstanceInfo(runningInstance.getSquareId(), runningInstance.getImageName(),
           runningInstance.getAppPort(), runningInstance.getServicePort(),
           runningInstance.getDockerInstance(), buildElapsedTime(diff)));
+  }
+
+  /**
+   * 
+   * @param id: instance id return by app/deploy request
+   * @return true if key exist for square and false is not
+   */
+  public boolean isIdExist(int id) {
+    return runningInstanceMap.containsKey(id);
   }
 }
