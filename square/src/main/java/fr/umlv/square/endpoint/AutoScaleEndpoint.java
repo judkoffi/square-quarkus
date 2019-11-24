@@ -33,10 +33,8 @@ public class AutoScaleEndpoint {
    * @param request the JSON request
    * @return a Response in JSON
    */
-  public Response update(Map<String, Integer> request) throws Exception { // use a map because we don't know the of the key
-    Jsonb jsonBuilder = null;
-    try {
-      jsonBuilder = JsonbBuilder.create();
+  public Response update(Map<String, Integer> request) { // use a map because we don't know the of the key
+    try(Jsonb jsonBuilder = JsonbBuilder.create()){
       var map = request
         .entrySet()
         .stream()
@@ -45,11 +43,8 @@ public class AutoScaleEndpoint {
         .status(SquareHttpStatusCode.CREATED_STATUS_CODE)
         .entity(jsonBuilder.toJson(map))
         .build();
-    }catch(Exception e) {
+    } catch (Exception e) {
       throw new SerializationException();
-    } finally {
-      if (jsonBuilder != null)
-        jsonBuilder.close();
     }
   }
 
@@ -60,17 +55,14 @@ public class AutoScaleEndpoint {
    * 
    * @return a Response in JSON
    */
-  public Response status() throws Exception {
-    Jsonb jsonBuilder = null;
-    try {
-      jsonBuilder = JsonbBuilder.create();
+  public Response status() {
+    try(Jsonb jsonBuilder = JsonbBuilder.create()){
       var hashmap = new HashMap<String, String>();
       hashmap.put("todomvc:8082", "no action");
       hashmap.put("demo:8083", "need to stop 1 instance(s)");
       return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
-    } finally {
-      if (jsonBuilder != null)
-        jsonBuilder.close();
+    } catch (Exception e) {
+      throw new SerializationException();
     }
   }
 
@@ -81,17 +73,14 @@ public class AutoScaleEndpoint {
    * 
    * @return a Response JSON which give the number of instance handled by auto scale
    */
-  public Response stop() throws Exception {
-    Jsonb jsonBuilder = null;
-    try {
-      jsonBuilder = JsonbBuilder.create();
+  public Response stop() {
+    try(Jsonb jsonBuilder = JsonbBuilder.create()){
       var hashmap = new HashMap<String, Integer>();
       hashmap.put("todomvc:8082", 2);
       hashmap.put("demo:8083", 1);
       return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
-    } finally {
-      if (jsonBuilder != null)
-        jsonBuilder.close();
+    } catch (Exception e) {
+      throw new SerializationException();
     }
   }
 }
