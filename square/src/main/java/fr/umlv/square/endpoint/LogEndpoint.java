@@ -52,7 +52,6 @@ public class LogEndpoint {
 
 
     // TODO: Improve filter by date method and use Date typeF
-    System.out.println("---------------------------------------");
     var result = logService
       .getLogsFilteredByTime(time)
       .stream()

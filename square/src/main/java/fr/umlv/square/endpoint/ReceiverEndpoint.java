@@ -13,6 +13,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import fr.umlv.square.model.request.ClientLogRequest;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
@@ -29,6 +31,7 @@ public class ReceiverEndpoint {
 
   private final LogService logService;
   private final DockerService dockerService;
+  private static final Logger LOGGER = LoggerFactory.getLogger(ReceiverEndpoint.class);
 
   @Inject
   public ReceiverEndpoint(DockerService dockerService, LogService logService) {
@@ -41,10 +44,9 @@ public class ReceiverEndpoint {
     try {
       var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
       var date = formatter.parse(strDate);
-      var timeStampDate = new Timestamp(date.getTime());
-      return timeStampDate;
+      return new Timestamp(date.getTime());
     } catch (ParseException e) {
-      System.out.println("Exception :" + e);
+      LOGGER.error("Exception : {}", e);
       return null;
     }
   }
@@ -62,7 +64,7 @@ public class ReceiverEndpoint {
 
     var entities = logs
       .stream()//
-      .map((log) -> new LogEntity(imageInfo.getSquareId(), convertStringToTimestamp(log.getDate()), log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(), imageInfo.getAppPort(), imageInfo.getServicePort()))//
+      .map(log -> new LogEntity(imageInfo.getSquareId(), convertStringToTimestamp(log.getDate()), log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(), imageInfo.getAppPort(), imageInfo.getServicePort()))//
       .collect(Collectors.toList());
 
     logService.saveLogs(entities);

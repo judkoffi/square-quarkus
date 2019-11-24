@@ -29,8 +29,8 @@ public class InstanceBackUpService {
 
     // stored the instance into the hashmap
     ProcessBuilderHelper
-      .parseDockerPs(output, (p) -> true)
+      .parseDockerPs(output, p -> true)
       .stream()
-      .forEach((imageInfo) -> dockerService.putInstance(imageInfo));
+      .forEach(imageInfo -> dockerService.putInstance(imageInfo));
   }
 }

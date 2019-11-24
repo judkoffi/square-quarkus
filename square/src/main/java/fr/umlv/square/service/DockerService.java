@@ -13,6 +13,8 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
 import fr.umlv.square.model.service.ImageInfo;
@@ -24,11 +26,12 @@ import fr.umlv.square.util.ProcessBuilderHelper;
 
 @ApplicationScoped // One DockerService instance for the whole application
 public class DockerService {
-  private final static String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
-  private final static String DOCKERFILES_DIRECTORY = "docker-images/";
-  private final static int HOUR_MINUTE_VALUE = 60;
+  private static final String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
+  private static final String DOCKERFILES_DIRECTORY = "docker-images/";
+  private static final int HOUR_MINUTE_VALUE = 60;
   private final HashMap<Integer, ImageInfo> runningInstanceMap;
   private final ProcessBuilderHelper processHelper;
+  private static final Logger LOGGER = LoggerFactory.getLogger(DockerService.class);
 
   @ConfigProperty(name = "quarkus.http.host")
   String squareHost;
@@ -46,7 +49,7 @@ public class DockerService {
    * @ConfigProperty(name = "quarkus.http.host") read this api host from application.properties
    */
   public DockerService() {
-    this.runningInstanceMap = new HashMap<Integer, ImageInfo>();
+    this.runningInstanceMap = new HashMap<>();
     this.processHelper = new ProcessBuilderHelper();
   }
 
@@ -59,7 +62,7 @@ public class DockerService {
       return true;
     } else {
       try (var fileContent = Files.lines(path)) {
-        var oldContent = fileContent.collect(Collectors.joining(System.lineSeparator())).toString();
+        var oldContent = fileContent.collect(Collectors.joining(System.lineSeparator()));
         return !oldContent.equals(content);
       } catch (IOException e) {
         throw new AssertionError(e);
@@ -171,7 +174,7 @@ public class DockerService {
     var imageInfo = runningInstanceMap
       .entrySet()
       .stream()
-      .filter((p) -> p.getValue().getDockerInstance().equals(dockerInstance))
+      .filter(p -> p.getValue().getDockerInstance().equals(dockerInstance))
       .findFirst();
     return imageInfo.isEmpty() ? null : imageInfo.get().getValue();
   }
@@ -212,7 +215,7 @@ public class DockerService {
       var info = imageInfo.get();
       runningInstanceMap.put(info.getSquareId(), info);
 
-      System.out.println(info);
+      LOGGER.info("{}", info);
 
       return Optional
         .of(new DeployResponse(info.getSquareId(), appName, appPort, info.getServicePort(),
@@ -238,9 +241,9 @@ public class DockerService {
     }
 
     var list = ProcessBuilderHelper
-      .parseDockerPs(cmdResult, (p) -> true)
+      .parseDockerPs(cmdResult, p -> true)
       .stream()
-      .map((mapper) -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(), mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(), buildElapsedTime(mapper.getCreated())))//
+      .map(mapper -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(), mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(), buildElapsedTime(mapper.getCreated())))//
       .collect(Collectors.toList());
 
     return Optional.of(list);

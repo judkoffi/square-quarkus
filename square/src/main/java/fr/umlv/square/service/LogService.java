@@ -9,6 +9,8 @@ import java.util.concurrent.TimeUnit;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.orm.LogTable;
 
@@ -20,6 +22,7 @@ import fr.umlv.square.orm.LogTable;
 @ApplicationScoped
 public class LogService {
   private final LogTable databaseRepository;
+  private static final Logger LOGGER = LoggerFactory.getLogger(LogService.class);
 
   @Inject
   public LogService(LogTable databaseRepository) {
@@ -77,7 +80,7 @@ public class LogService {
       var date = formatter.parse(strDate); 
       return new Timestamp(date.getTime());
     } catch (ParseException e) {
-      System.out.println("Exception :" + e);
+      LOGGER.error("Exception : {}", e);
       return null;
     }
   }

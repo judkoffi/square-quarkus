@@ -15,8 +15,6 @@ public class StopInstanceRequest {
   @Digits(fraction = 0, integer = Integer.MAX_VALUE)
   private int id;
 
-  public StopInstanceRequest() {}
-
   public StopInstanceRequest(int id) {
     this.id = Objects.requireNonNull(id);
   }

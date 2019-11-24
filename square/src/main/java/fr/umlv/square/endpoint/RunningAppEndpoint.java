@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import fr.umlv.square.model.request.DeployInstanceRequest;
 import fr.umlv.square.model.request.StopInstanceRequest;
+import fr.umlv.square.model.response.RunningInstanceInfo;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
@@ -68,7 +69,7 @@ public class RunningAppEndpoint {
     var runningApps = dockerService.getRunnningList();
 
     var list = runningApps.isEmpty() ? new ArrayList<String>()
-        : runningApps.get().stream().map((mapper) -> mapper.toJson()).collect(Collectors.toList());
+        : runningApps.get().stream().map(RunningInstanceInfo::toJson).collect(Collectors.toList());
     return Response.ok().entity(list.toString()).build();
   }
 

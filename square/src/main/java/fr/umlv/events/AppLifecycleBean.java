@@ -28,7 +28,7 @@ public class AppLifecycleBean {
    * @param ev : the event when the app starts
    */
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("The application is starting... and PID: " + ProcessHandle.current().pid());
+    LOGGER.info("The application is starting... and PID: {}", ProcessHandle.current().pid());
     backUpService.readSavedInstance();
   }
 
