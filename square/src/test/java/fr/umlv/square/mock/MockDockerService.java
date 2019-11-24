@@ -5,12 +5,21 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import fr.umlv.square.model.response.DeployResponse;
 import fr.umlv.square.model.response.RunningInstanceInfo;
+import fr.umlv.square.model.service.ImageInfo;
 import fr.umlv.square.service.DockerService;
 import io.quarkus.test.Mock;
 
 @Mock
 @ApplicationScoped
 public class MockDockerService extends DockerService {
+
+  public MockDockerService() {
+    initMap();
+  }
+
+  private void initMap() {
+    this.putInstance(new ImageInfo("fruitapi", -1, 8080, 1000, "fruitapi-10", 10));
+  }
 
   @Override
   public Optional<DeployResponse> runContainer(String appName, int appPort) {

@@ -26,7 +26,6 @@ public class RunningAppEndpointTest {
       .statusCode(201)
       .assertThat()
       .body(is(expected));
-
   }
 
   @Test
@@ -39,7 +38,6 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(400)
       .body(is("Invalid post body"));
-
   }
 
   @Test
@@ -52,7 +50,6 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(400)
       .body(is("Invalid post body"));
-
   }
 
   @Test
@@ -144,6 +141,18 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(201)
       .body(is(runningInstance.toJson()));
+  }
+
+  @Test
+  public void testStopEndpointWithUnknowId() {
+    given()
+      .contentType(ContentType.JSON)
+      .body("{\"id\": 2}")
+      .when()
+      .post("/app/stop")
+      .then()
+      .statusCode(422)
+      .body(is("{\"message\":\"Unknow instance id\"}"));
   }
 
 }

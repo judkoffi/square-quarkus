@@ -179,7 +179,7 @@ public class DockerService {
    * 
    * @param instance : ImageInfo which is the object to fill the map of running instance information
    */
-  void putInstance(ImageInfo instance) {
+  public void putInstance(ImageInfo instance) {
     runningInstanceMap.put(instance.getSquareId(), instance);
   }
 
