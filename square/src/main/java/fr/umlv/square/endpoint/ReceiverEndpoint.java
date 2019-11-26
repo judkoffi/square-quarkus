@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.umlv.square.model.request.ClientLogRequest;
+import fr.umlv.square.model.request.ClientStatusRequest;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.service.LogService;
@@ -71,6 +72,27 @@ public class ReceiverEndpoint {
       .collect(Collectors.toList());
 
     logService.saveLogs(entities);
+    return Response.ok().build();
+  }
+
+  /**
+   * Endpoint to receive status of app running inside docker from square-client lib
+   * 
+   * @param request: an {ClientStatusRequest} which contain request from an docker instance which
+   *        notify if app was killed
+   */
+  @POST
+  @Path("/status/")
+  public Response processReceivedAppStatus(ClientStatusRequest request) {
+    var instance = dockerService.findImageInfoByDockerInstance(request.getDockerInstance());
+    LOGGER.info("instance {} is killed ", instance.getDockerInstance());
+    dockerService.updateDockerInstanceStatus(instance, request.getStatus());
+    var r = dockerService.stopApp(instance.getSquareId());
+    if (r.isEmpty()) {
+      LOGGER.info("Failed to kill instance");
+    } else {
+      LOGGER.info("success to kill instance");
+    }
     return Response.ok().build();
   }
 

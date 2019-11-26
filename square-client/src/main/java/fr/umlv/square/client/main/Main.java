@@ -24,6 +24,7 @@ public class Main {
       {
         try {
           worker.doWork();
+          worker.checkAppAlive();
         } catch (IOException e) {
           throw new AssertionError(e);
         }

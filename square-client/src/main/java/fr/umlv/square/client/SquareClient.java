@@ -12,7 +12,9 @@ import fr.umlv.square.client.model.LogModel;
  * Class use to store information of a Square API like : host, port and endpoint to send logs
  */
 class SquareClient {
-  private final String ENDPOINT = "/container-log/send-log";
+  private final String LOG_ENDPOINT = "/container-log/send-log";
+  private final String STATUS_ENDPOINT = "/container-log/status";
+
   private final String squareUrl;
   private final HttpClient client;
   private final String dockerId;
@@ -26,13 +28,40 @@ class SquareClient {
   }
 
   /**
-   * Build a JSON object from a List of logs
+   * Build a JSON from a List of logs
+   * 
    * @param logsModels: list of logs to to send
    * @return {@String} with represent json body to to send to Square API
    */
   private String buildJson(List<LogModel> logsModels) {
     synchronized (lock) {
       return "{\"dockerInstance\":\"" + dockerId + "\", \"logs\":" + logsModels + "}";
+    }
+  }
+
+  private String buildStatusJson(boolean status) {
+    synchronized (lock) {
+      return "{\"dockerInstance\":\"" + dockerId + "\", \"status\":" + status + "}";
+    }
+  }
+
+  /*
+   * Method use to send request
+   */
+  private boolean sendRequest(String uri, String body) {
+    System.out.println("body " + body);
+    var request = HttpRequest
+      .newBuilder()
+      .uri(URI.create(uri))
+      .header("Content-Type", "application/json")
+      .POST(HttpRequest.BodyPublishers.ofString(body))
+      .build();
+
+    try {
+      var response = client.send(request, BodyHandlers.ofString());
+      return (response.statusCode() == HTTP_STATUS_OK);
+    } catch (IOException | InterruptedException e) {
+      return false;
     }
   }
 
@@ -44,24 +73,18 @@ class SquareClient {
    */
   public boolean sendInfoLog(List<LogModel> logsModels) {
     synchronized (lock) {
-      var uri = squareUrl + ENDPOINT;
+      var uri = squareUrl + LOG_ENDPOINT;
       var body = buildJson(logsModels);
+      return sendRequest(uri, body);
+    }
+  }
+
+  public boolean sendAppStatus(boolean appIsAlive) {
+    synchronized (lock) {
+      var uri = squareUrl + STATUS_ENDPOINT;
+      var body = buildStatusJson(appIsAlive);
       System.out.println(body);
-
-      var request = HttpRequest
-        .newBuilder()
-        .uri(URI.create(uri))
-        .header("Content-Type", "application/json")
-        .POST(HttpRequest.BodyPublishers.ofString(body))
-        .build();
-
-      try {
-        var response = client.send(request, BodyHandlers.ofString());
-        System.out.println(response.body());
-        return (response.statusCode() == HTTP_STATUS_OK);
-      } catch (IOException | InterruptedException e) {
-        return false;
-      }
+      return sendRequest(uri, body);
     }
   }
 }

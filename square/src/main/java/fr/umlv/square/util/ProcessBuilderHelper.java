@@ -22,7 +22,8 @@ public class ProcessBuilderHelper {
   private final ProcessBuilder processBuilder;
 
   public ProcessBuilderHelper() {
-    this.processBuilder = new ProcessBuilder().directory(new File("../../"));
+    // this.processBuilder = new ProcessBuilder().directory(new File("./")); Packaged
+    this.processBuilder = new ProcessBuilder().directory(new File("../.."));
   }
 
   /* Helper method use to display output after run command on terminal */
@@ -38,7 +39,7 @@ public class ProcessBuilderHelper {
   }
 
   // Method used to create an ImageInfo from the String output of the "ps" command
-  private static ImageInfo psLinetoImageInfo(String[] tokens) {
+  private static ImageInfo psLinetoImageInfo(String[] tokens, boolean isBackUp) {
     var id = Integer.parseInt(tokens[6].split("-")[1]);
     var ports = tokens[5].split(":");
     var servicePort = Integer.parseInt(ports[1].split("->")[0]);
@@ -52,10 +53,8 @@ public class ProcessBuilderHelper {
     } catch (ParseException e) {
       throw new AssertionError(e);
     }
-
-    var diff = System.currentTimeMillis() - date.getTime();
-
-    return new ImageInfo(tokens[1], diff, appPort, servicePort, tokens[6], id);
+    var createdTime = !isBackUp ? System.currentTimeMillis() - date.getTime() : date.getTime();
+    return new ImageInfo(tokens[1], createdTime, appPort, servicePort, tokens[6], id);
   }
 
   /**
@@ -65,7 +64,8 @@ public class ProcessBuilderHelper {
    * @param predicate
    * @return a List of ImageInfo
    */
-  public static List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate) {
+  public static List<ImageInfo> parseDockerPs(String psOutput, Predicate<String> predicate,
+      boolean isBackUp) {
     var regex = "([A-Z\\s]+?)($|\\s{2,})";
     var lines = psOutput.trim().split("\n");
 
@@ -74,18 +74,8 @@ public class ProcessBuilderHelper {
       .skip(1)
       .filter(predicate)
       .map(elt -> elt.split(regex))
-      .map(ProcessBuilderHelper::psLinetoImageInfo)
+      .map(elt -> ProcessBuilderHelper.psLinetoImageInfo(elt, isBackUp))
       .collect(Collectors.toList());
-  }
-
-  /**
-   * Allow to get a List of ImageInfo from the String output of the "ps" command
-   * 
-   * @param lines : String which come from the String output of the "ps" command
-   * @return : List of ImageInfo
-   */
-  public List<ImageInfo> dockerPsToImageInfo(String lines) {
-    return parseDockerPs(lines, e -> true);
   }
 
   /**

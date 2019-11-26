@@ -151,7 +151,7 @@ public class DockerService {
 
   // This method return a String which represents the time elapsed from the begin of the application
   // start
-  private String buildElapsedTime(long diff) {
+  private static String buildElapsedTime(long diff) {
     var calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
     calendar.setTimeInMillis(diff);
     var hoursToMinutes = calendar.get(Calendar.HOUR) * HOUR_MINUTE_VALUE;
@@ -242,7 +242,7 @@ public class DockerService {
     }
 
     var list = ProcessBuilderHelper
-      .parseDockerPs(cmdResult, p -> true)
+      .parseDockerPs(cmdResult, p -> true, false)
       .stream()
       .map(mapper -> new RunningInstanceInfo(mapper.getSquareId(), mapper.getImageName(),
           mapper.getAppPort(), mapper.getServicePort(), mapper.getDockerInstance(),
@@ -258,7 +258,6 @@ public class DockerService {
    * @param key : int which is the id of the instance the user want to stop
    * @return : RunningInstanceInfo which the application the user want to stop
    */
-  // TODO: Fix elapsed-time when hashmap was fill after quarkus restart
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
     var cmd = "docker kill " + runningInstance.getDockerInstance();
@@ -282,5 +281,18 @@ public class DockerService {
    */
   public boolean isIdExist(int id) {
     return runningInstanceMap.containsKey(id);
+  }
+
+  /**
+   * Method use to update instance is alive status
+   * 
+   * @param instance
+   * @param status
+   */
+
+  public void updateDockerInstanceStatus(ImageInfo instance, boolean status) {
+    var targetInstance = runningInstanceMap.get(instance.getSquareId());
+    targetInstance.updateIsAlive(status);
+    System.out.println(runningInstanceMap);
   }
 }
