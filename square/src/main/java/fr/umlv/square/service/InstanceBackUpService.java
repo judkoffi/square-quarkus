@@ -30,7 +30,7 @@ public class InstanceBackUpService {
 
     // stored the instance into the hashmap
     ProcessBuilderHelper
-      .parseDockerPs(output, p -> true)
+      .parseDockerPs(output, p -> true, true)
       .stream()
       .forEach(dockerService::putInstance);
   }

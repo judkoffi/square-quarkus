@@ -12,7 +12,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apache.commons.lang3.SerializationException;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
 /**
@@ -44,7 +43,7 @@ public class AutoScaleEndpoint {
         .entity(jsonBuilder.toJson(map))
         .build();
     } catch (Exception e) {
-      throw new SerializationException();
+      throw new AssertionError(e);
     }
   }
 
@@ -62,7 +61,7 @@ public class AutoScaleEndpoint {
       hashmap.put("demo:8083", "need to stop 1 instance(s)");
       return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
     } catch (Exception e) {
-      throw new SerializationException();
+      throw new AssertionError(e);
     }
   }
 
@@ -80,7 +79,7 @@ public class AutoScaleEndpoint {
       hashmap.put("demo:8083", 1);
       return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
     } catch (Exception e) {
-      throw new SerializationException();
+      throw new AssertionError(e);
     }
   }
 }

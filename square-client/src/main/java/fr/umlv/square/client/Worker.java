@@ -1,7 +1,10 @@
 package fr.umlv.square.client;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -14,11 +17,13 @@ public class Worker {
   /*
    * File use to store all of output from runned app
    */
-  private final static String OUTPUT_FILE = "outputLogfile.log";
+  private static final String OUTPUT_FILE = "outputLogfile.log";
   private final SquareClient squareClient;
+  private boolean appIsAlive; // Use a boolean as default true to check if app is alive
+
 
   /*
-   * Index use to store offset of log read by prvious thread
+   * Index use to store offset of log read by previous thread
    */
   private int readingIndex;
 
@@ -28,6 +33,7 @@ public class Worker {
     synchronized (lock) {
       this.readingIndex = 0;
       this.squareClient = new SquareClient(ClientConfig.fromEnv());
+      this.appIsAlive = true;
     }
   }
 
@@ -65,20 +71,25 @@ public class Worker {
 
   /**
    * Sends logs of the application running to the endpoint API of square
+   * 
    * @throws IOException
    */
   public void doWork() throws IOException {
     synchronized (lock) {
+      if (!appIsAlive) {
+        squareClient.sendAppStatus(appIsAlive);
+        return;
+      }
       /*
        * Read all lines of output's file using Stream API into a list of String and skip previous
-       * readed lines
+       * read lines
        */
       try (var fileStream = Files.lines(Path.of(OUTPUT_FILE))) {
 
         var list = fileStream
           .skip(readingIndex)
-          .map((mapper) -> LogParser.parseLine(mapper))
-          .filter((p) -> !p.getMessage().isBlank() && !p.getMessage().isEmpty())
+          .map(LogParser::parseLine)
+          .filter(p -> !p.getMessage().isBlank() && !p.getMessage().isEmpty())
           .collect(Collectors.toList());
 
         if (list.isEmpty())
@@ -94,6 +105,36 @@ public class Worker {
         } else {
           System.out.println("No send, index" + readingIndex);
         }
+      }
+    }
+  }
+
+  private static String getOutputOfCommand(InputStream outputStream) throws IOException {
+    var reader = new BufferedReader(new InputStreamReader(outputStream));
+    var builder = new StringBuilder();
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+      builder.append(line);
+      builder.append(System.getProperty("line.separator"));
+    }
+    return builder.toString();
+  }
+
+  public void checkAppAlive() {
+    synchronized (lock) {
+      var processBuilder = new ProcessBuilder();
+      try {
+        var processPS = processBuilder.command("sh", "-c", "ps -e | grep app.jar").start();
+        if (processPS.waitFor() == 0) {
+          var stdout = processPS.getInputStream();
+          var output = getOutputOfCommand(stdout);
+          System.out.println(output);
+          if (!output.contains("java -jar app.jar")) {
+            appIsAlive = false;
+          }
+        }
+      } catch (IOException | InterruptedException e) {
+        return;
       }
     }
   }

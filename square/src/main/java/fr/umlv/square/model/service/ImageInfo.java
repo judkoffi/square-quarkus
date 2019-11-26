@@ -13,6 +13,7 @@ public class ImageInfo {
   private final int servicePort;
   private final String dockerInstance;
   private final int squareId;
+  private boolean isAlive;
 
   public String getImageName() {
     return imageName;
@@ -46,6 +47,7 @@ public class ImageInfo {
     this.servicePort = servicePort;
     this.dockerInstance = dockerInstance;
     this.squareId = squareId;
+    this.isAlive = true;
   }
 
   @Override
@@ -68,5 +70,9 @@ public class ImageInfo {
     return "ImageInfo [imageName=" + imageName + ", created=" + created + ", appPort=" + appPort
         + ", servicePort=" + servicePort + ", dockerInstance=" + dockerInstance + ", squareId="
         + squareId + "]";
+  }
+
+  public void updateIsAlive(boolean status) {
+    isAlive = status;
   }
 }

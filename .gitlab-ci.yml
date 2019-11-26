@@ -8,16 +8,16 @@ build_square:
   stage: build
   script:
     - cd square
-    - mvn $MAVEN_CLI_OPTS compile
+    - ./mvnw compile
 
 test_square:
   stage: test
   script:
     - cd square
-    - mvn $MAVEN_CLI_OPTS test
+    - ./mvnw test
 
 build_square_client:
   stage: build
   script:
     - cd square-client
-    - mvn $MAVEN_CLI_OPTS compile
+    - mvn compile
