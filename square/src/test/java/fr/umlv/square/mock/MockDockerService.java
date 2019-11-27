@@ -13,7 +13,8 @@ import io.quarkus.test.Mock;
 @ApplicationScoped
 public class MockDockerService extends DockerService {
 
-  public MockDockerService() {
+  public MockDockerService(MockAutoScaleService autoScaleService) {
+    super(autoScaleService);
     initMap();
   }
 
@@ -41,5 +42,29 @@ public class MockDockerService extends DockerService {
     var runningInstance = new RunningInstanceInfo(10, "fruitapi", 8080, 1000, "fruitapi-1", "2m30");
     return Optional.of(runningInstance);
   }
+
+  /*
+  @Override
+  public int findFirstInstanceByAppNamePort(String appName, int appPort) {
+    return -1;
+  }
+
+  @Override
+  public ImageInfo findImageInfoByDockerInstance(String dockerInstance) {
+    return null;
+  }
+
+  @Override
+  public boolean isIdExist(int id) {
+    return false;
+  }
+
+  @Override
+  public void putInstance(ImageInfo instance) {}
+
+  @Override
+  public void updateDockerInstanceStatus(ImageInfo instance, boolean status) {}
+  
+ */
 
 }

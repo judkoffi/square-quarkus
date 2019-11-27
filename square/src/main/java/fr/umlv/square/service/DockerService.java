@@ -5,13 +5,14 @@ import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +30,10 @@ public class DockerService {
   private static final String DOCKERFILE_TEMPLATE; // Dockerfile use as template for all images
   private static final String DOCKERFILES_DIRECTORY = "docker-images/";
   private static final int HOUR_MINUTE_VALUE = 60;
-  private final HashMap<Integer, ImageInfo> runningInstanceMap;
+  private final ConcurrentHashMap<Integer, ImageInfo> runningInstanceMap;
   private final ProcessBuilderHelper processHelper;
   private static final Logger LOGGER = LoggerFactory.getLogger(DockerService.class);
+  private final AutoScaleService autoScaleService;
 
   @ConfigProperty(name = "quarkus.http.host")
   String squareHost;
@@ -48,9 +50,11 @@ public class DockerService {
   /*
    * @ConfigProperty(name = "quarkus.http.host") read this api host from application.properties
    */
-  public DockerService() {
-    this.runningInstanceMap = new HashMap<>();
+  @Inject
+  public DockerService(AutoScaleService autoScaleService) {
+    this.runningInstanceMap = new ConcurrentHashMap<>();
     this.processHelper = new ProcessBuilderHelper();
+    this.autoScaleService = autoScaleService;
   }
 
   /*
@@ -189,7 +193,7 @@ public class DockerService {
    * @return : HashMap<Integer, ImageInfo> : the map which associate an Integer (the id of the
    *         instance) to an ImageInfo
    */
-  HashMap<Integer, ImageInfo> getRunningInstanceMap() {
+  ConcurrentHashMap<Integer, ImageInfo> getRunningInstanceMap() {
     return runningInstanceMap;
   }
 
@@ -213,6 +217,8 @@ public class DockerService {
 
       var info = imageInfo.get();
       runningInstanceMap.put(info.getSquareId(), info);
+
+      autoScaleService.incInstanceCounter(info.getImageName() + ":" + info.getAppPort());
 
       LOGGER.info("new running instance {}", info);
 
@@ -260,12 +266,17 @@ public class DockerService {
    */
   public Optional<RunningInstanceInfo> stopApp(int key) {
     var runningInstance = runningInstanceMap.get(key);
+    LOGGER.info("remove running instance {}", runningInstance);
     var cmd = "docker kill " + runningInstance.getDockerInstance();
     var cmdResult = processHelper.execWaitForCommand(cmd);
     if (!cmdResult)
       return Optional.empty();
 
+    autoScaleService
+      .decInstanceCounter(runningInstance.getImageName() + ":" + runningInstance.getAppPort());
+
     runningInstanceMap.remove(key);
+
     var diff = System.currentTimeMillis() - runningInstance.getCreated();
 
     return Optional
@@ -294,5 +305,16 @@ public class DockerService {
     var targetInstance = runningInstanceMap.get(instance.getSquareId());
     targetInstance.updateIsAlive(status);
     System.out.println(runningInstanceMap);
+  }
+
+  public int findFirstInstanceByAppNamePort(String appName, int appPort) {
+    var opt = runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter(
+          p -> p.getValue().getImageName().equals(appName) && p.getValue().getAppPort() == appPort)
+      .findAny();
+
+    return (opt.isEmpty()) ? -1 : opt.get().getKey();
   }
 }

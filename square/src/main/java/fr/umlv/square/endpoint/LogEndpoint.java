@@ -1,5 +1,6 @@
 package fr.umlv.square.endpoint;
 
+import static fr.umlv.square.util.Helper.isNumeric;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -111,16 +112,6 @@ public class LogEndpoint {
       default:
         return e -> false;
     }
-  }
-
-  /**
-   * Allow to know if a String is a numeric. Uses to define if the user want to filter logs by an id
-   * 
-   * @param filter : a String given by the user to filter the logs
-   * @return true if the filter is numeric or false otherwise
-   */
-  private static boolean isNumeric(String filter) {
-    return filter.matches("-?\\d+(\\.\\d+)?"); // match a number with optional '-' and decimal.
   }
 
   /**

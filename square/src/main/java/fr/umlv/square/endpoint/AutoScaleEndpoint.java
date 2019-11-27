@@ -1,9 +1,7 @@
 package fr.umlv.square.endpoint;
 
-import static java.util.stream.Collectors.toMap;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
+import javax.inject.Inject;
 import javax.json.bind.JsonbBuilder;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -12,6 +10,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import fr.umlv.square.service.AutoScaleService;
+import fr.umlv.square.util.Helper;
 import fr.umlv.square.util.SquareHttpStatusCode;
 
 /**
@@ -23,6 +23,22 @@ import fr.umlv.square.util.SquareHttpStatusCode;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AutoScaleEndpoint {
 
+  private final AutoScaleService autoScaleService;
+
+  @Inject
+  public AutoScaleEndpoint(AutoScaleService autoScaleService) {
+    this.autoScaleService = autoScaleService;
+  }
+
+  private static boolean validRequest(Map<String, Integer> request) {
+    return request.entrySet().stream().allMatch(p ->
+    {
+      var v = p.getKey();
+      return (p.getValue() >= 0) && !v.isBlank() && !v.isEmpty() && v.contains(":")
+          && Helper.isNumeric(v.split(":")[1]);
+    });
+  }
+
   @POST
   @Path("/update")
   /**
@@ -31,16 +47,22 @@ public class AutoScaleEndpoint {
    * @param request the JSON request
    * @return a Response in JSON
    */
-  public Response update(Map<String, Integer> request) { // use a map because we don't know the of
-                                                         // the key
+  /*
+   * use a map because we don't know the name of the key
+   */
+  public Response update(Map<String, Integer> request) {
+    if (request.isEmpty())
+      return Response.status(SquareHttpStatusCode.CREATED_STATUS_CODE).entity("{}").build();
+
+    if (!validRequest(request))
+      return Response.status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE).build();
+
+    autoScaleService.updateScalingConfig(request);
+    var body = autoScaleService.getScalingStatus();
     try (var jsonBuilder = JsonbBuilder.create()) {
-      var map = request
-        .entrySet()
-        .stream()
-        .collect(toMap(Entry::getKey, x -> "need to start " + x.getValue() + " instance(s)"));
       return Response
         .status(SquareHttpStatusCode.CREATED_STATUS_CODE)
-        .entity(jsonBuilder.toJson(map))
+        .entity(jsonBuilder.toJson(body))
         .build();
     } catch (Exception e) {
       throw new AssertionError(e);
@@ -55,11 +77,9 @@ public class AutoScaleEndpoint {
    * @return a Response in JSON
    */
   public Response status() {
+    var body = autoScaleService.getScalingStatus();
     try (var jsonBuilder = JsonbBuilder.create()) {
-      var hashmap = new HashMap<String, String>();
-      hashmap.put("todomvc:8082", "no action");
-      hashmap.put("demo:8083", "need to stop 1 instance(s)");
-      return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
+      return Response.ok().entity(jsonBuilder.toJson(body)).build();
     } catch (Exception e) {
       throw new AssertionError(e);
     }
@@ -73,11 +93,10 @@ public class AutoScaleEndpoint {
    * @return a Response JSON which give the number of instance handled by auto scale
    */
   public Response stop() {
+    autoScaleService.stop();
+    var body = autoScaleService.getScalingConfig();
     try (var jsonBuilder = JsonbBuilder.create()) {
-      var hashmap = new HashMap<String, Integer>();
-      hashmap.put("todomvc:8082", 2);
-      hashmap.put("demo:8083", 1);
-      return Response.ok().entity(jsonBuilder.toJson(hashmap)).build();
+      return Response.ok().entity(jsonBuilder.toJson(body)).build();
     } catch (Exception e) {
       throw new AssertionError(e);
     }

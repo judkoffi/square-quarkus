@@ -5,6 +5,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import fr.umlv.square.service.AutoScaleService;
 import fr.umlv.square.service.InstanceBackUpService;
 import io.quarkus.runtime.StartupEvent;
 
@@ -15,11 +16,13 @@ import io.quarkus.runtime.StartupEvent;
 @ApplicationScoped // describe the whole square application entity
 public class AppLifecycleBean {
   private final InstanceBackUpService backUpService;
+  private final AutoScaleService autoScaleService;
   private static final Logger LOGGER = LoggerFactory.getLogger(AppLifecycleBean.class);
 
   @Inject
-  public AppLifecycleBean(InstanceBackUpService backUpService) {
+  public AppLifecycleBean(InstanceBackUpService backUpService, AutoScaleService autoScaleService) {
     this.backUpService = backUpService;
+    this.autoScaleService = autoScaleService;
   }
 
   /**
@@ -30,6 +33,7 @@ public class AppLifecycleBean {
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting... and PID: {}", ProcessHandle.current().pid());
     backUpService.readSavedInstance();
+    autoScaleService.start();
   }
 
 }

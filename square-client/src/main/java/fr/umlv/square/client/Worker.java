@@ -124,7 +124,7 @@ public class Worker {
     synchronized (lock) {
       var processBuilder = new ProcessBuilder();
       try {
-        var processPS = processBuilder.command("sh", "-c", "ps -e | grep app.jar").start();
+        var processPS = processBuilder.command("sh", "-c", "ps -e | grep java -jar app.jar").start();
         if (processPS.waitFor() == 0) {
           var stdout = processPS.getInputStream();
           var output = getOutputOfCommand(stdout);
