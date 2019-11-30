@@ -31,9 +31,9 @@ public class StopInstanceRequest {
   }
 
   /**
-   * Allow to set the if of a docker instance top stop
+   * Allow to set the id of a docker instance to stop
    * 
-   * @param id : int : the id of an instance top stop
+   * @param id : int : the id of a docker instance to stop
    */
   public void setId(int id) {
     this.id = id;

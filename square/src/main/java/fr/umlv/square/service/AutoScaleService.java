@@ -124,7 +124,7 @@ public class AutoScaleService {
     });
   }
 
-  /*
+  /**
    * Get instances which are current running but don't have scaling config set
    */
   private Set<String> makeDiffBetweenScaleMapAndRunningMap() {
@@ -191,7 +191,7 @@ public class AutoScaleService {
         return value;
       });
     });
-    System.out.println("in methode");
+    System.out.println("in method");
     System.out.println(scaleMap);
   }
 
