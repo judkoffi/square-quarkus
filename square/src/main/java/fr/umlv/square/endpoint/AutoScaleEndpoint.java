@@ -57,6 +57,11 @@ public class AutoScaleEndpoint {
     if (!validRequest(request))
       return Response.status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE).build();
 
+
+    if (!autoScaleService.isStarted()) {
+      autoScaleService.start();
+    }
+
     autoScaleService.updateScalingConfig(request);
     var body = autoScaleService.getScalingStatus();
     try (var jsonBuilder = JsonbBuilder.create()) {

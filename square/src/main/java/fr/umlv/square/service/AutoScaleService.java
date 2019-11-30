@@ -1,12 +1,16 @@
 package fr.umlv.square.service;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.slf4j.Logger;
@@ -19,9 +23,10 @@ import org.slf4j.LoggerFactory;
 public class AutoScaleService {
   private static final int SCALING_DELAY = 20000;
   private final ScheduledExecutorService executor;
-  private final ConcurrentHashMap<String, ScalingCounter> scaleMap;
+  private final ConcurrentHashMap<String, ScalingInfo> scaleMap;
   private final DockerService dockerService;
   private static final Logger LOGGER = LoggerFactory.getLogger(AutoScaleService.class);
+  private boolean isStarted;
 
   @Inject
   public AutoScaleService(DockerService dockerService) {
@@ -34,6 +39,9 @@ public class AutoScaleService {
    * Method which check each SCALING_DELAY if scaling contract is assured
    */
   private void scaleWork() {
+    if (!isStarted)
+      return;
+    
     scaleMap.forEach((key, value) ->
     {
       /*
@@ -47,14 +55,15 @@ public class AutoScaleService {
 
       if (diff < 0) {
         var i = Math.abs(diff);
-        IntStream.range(0, i).forEach(action -> dockerService.runContainer(appName, appPort));
+        LongStream.range(0, i).forEach(action -> dockerService.runContainer(appName, appPort));
       } else if (diff > 0) {
-        for (var i = 0; i < diff; i++) {
+        LongStream.range(0, diff).forEach(action ->
+        {
           var idToStop = dockerService.findFirstInstanceByAppNamePort(appName, appPort);
           if (idToStop != -1) {
             dockerService.stopApp(idToStop);
           }
-        }
+        });
       }
     });
   }
@@ -64,6 +73,7 @@ public class AutoScaleService {
    */
   public void start() {
     LOGGER.info("start auto scale");
+    isStarted = true;
     executor.scheduleWithFixedDelay(this::scaleWork, 1000, SCALING_DELAY, TimeUnit.MILLISECONDS);
   }
 
@@ -72,6 +82,7 @@ public class AutoScaleService {
    */
   public void stop() {
     LOGGER.info("stop auto scale");
+    isStarted = false;
     executor.shutdownNow();
   }
 
@@ -83,8 +94,11 @@ public class AutoScaleService {
   public void incInstanceCounter(String appName) {
     scaleMap.compute(appName, (k, v) ->
     {
-      if (v == null)
-        return new ScalingCounter(1, 1);
+      if (v == null) {
+        System.out.println("no containt " + appName);
+        return null;
+      }
+      System.out.println("innc " + appName);
       v.runningInstanceCounter++;
       return v;
     });
@@ -98,14 +112,27 @@ public class AutoScaleService {
   public void decInstanceCounter(String appName) {
     scaleMap.compute(appName, (k, v) ->
     {
-      if (v == null)
-        return new ScalingCounter(0, 0);
+      if (v == null) {
+        System.out.println("no containt " + appName);
+        return null;
+      }
       var tmp = v.runningInstanceCounter--;
       if (tmp < 0) {
         v.runningInstanceCounter = 0;
       }
       return v;
     });
+  }
+
+  /*
+   * Get instances which are current running but don't have scaling config set
+   */
+  private Set<String> makeDiffBetweenScaleMapAndRunningMap() {
+    var sources = new HashSet<String>(dockerService.getMapKeys()); // Make defencive copy
+    var tmp = scaleMap.entrySet().stream().map(Entry::getKey).collect(Collectors.toSet());
+    var targets = new HashSet<String>(tmp);
+    sources.removeAll(targets);
+    return sources;
   }
 
   /**
@@ -128,6 +155,7 @@ public class AutoScaleService {
         map.put(key, "need nothing");
       }
     });
+    makeDiffBetweenScaleMapAndRunningMap().forEach(key -> map.put(key, "need nothing"));
     return map;
   }
 
@@ -136,9 +164,12 @@ public class AutoScaleService {
    * 
    * @return: Map which associate for each app, scaling contract
    */
-  public Map<String, Integer> getScalingConfig() {
-    var map = new HashMap<String, Integer>();
-    scaleMap.forEach((key, value) -> map.put(key, value.scalingInstanceCounter));
+  public Map<String, Long> getScalingConfig() {
+    var map = new HashMap<String, Long>();
+    scaleMap.forEach((key, value) ->
+    {
+      map.put(key, value.scalingInstanceCounter);
+    });
     return map;
   }
 
@@ -152,25 +183,38 @@ public class AutoScaleService {
     {
       scaleMap.compute(keyRequest, (key, value) ->
       {
-        if (value == null)
-          return new ScalingCounter(0, newScaleCounter);
+        if (value == null) {
+          System.out.println("add new entry " + keyRequest);
+          return new ScalingInfo(dockerService.getRunningCounterOfApp(keyRequest), newScaleCounter);
+        }
         value.scalingInstanceCounter = newScaleCounter;
         return value;
       });
     });
+    System.out.println("in methode");
+    System.out.println(scaleMap);
   }
 
   /**
    * Intern class use to store current running instance counter and for this instance scaling
    * configuration
    */
-  private static class ScalingCounter {
-    private int runningInstanceCounter;
-    private int scalingInstanceCounter;
+  private static class ScalingInfo {
+    private long runningInstanceCounter;
+    private long scalingInstanceCounter;
 
-    public ScalingCounter(int runningInstanceCounter, int scalingInstanceCounter) {
+    public ScalingInfo(long runningInstanceCounter, long scalingInstanceCounter) {
       this.runningInstanceCounter = runningInstanceCounter;
       this.scalingInstanceCounter = scalingInstanceCounter;
     }
+  }
+
+  /**
+   * Use to know if auto scale is started
+   * 
+   * @return true is auto scale is activated or false if not
+   */
+  public boolean isStarted() {
+    return isStarted;
   }
 }

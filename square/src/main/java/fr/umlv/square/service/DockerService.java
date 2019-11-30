@@ -8,6 +8,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -210,8 +211,9 @@ public class DockerService {
       }
 
       var info = imageInfo.get();
+      var appNamePort = info.getImageName() + ":" + info.getAppPort();
       runningInstanceMap.put(info.getSquareId(), info);
-      autoScaleService.incInstanceCounter(info.getImageName() + ":" + info.getAppPort());
+      autoScaleService.incInstanceCounter(appNamePort);
 
       LOGGER.info("new running instance {}", info);
 
@@ -315,5 +317,22 @@ public class DockerService {
           p -> p.getValue().getImageName().equals(appName) && p.getValue().getAppPort() == appPort)
       .findAny();
     return (opt.isEmpty()) ? -1 : opt.get().getKey();
+  }
+
+  public Set<String> getMapKeys() {
+    return runningInstanceMap
+      .entrySet()
+      .stream()
+      .map(mapper -> mapper.getValue().getImageName() + ":" + mapper.getValue().getAppPort())
+      .collect(Collectors.toSet());
+  }
+
+  public long getRunningCounterOfApp(String appNamePort) {
+    return runningInstanceMap
+      .entrySet()
+      .stream()
+      .filter(
+          p -> (p.getValue().getImageName() + ":" + p.getValue().getAppPort()).equals(appNamePort))
+      .count();
   }
 }
