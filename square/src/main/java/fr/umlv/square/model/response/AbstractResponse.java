@@ -34,7 +34,7 @@ abstract class AbstractResponse {
     joiner.add("\"id\": " + id);
     joiner.add("\"app\": \"" + appName + "\"");
     joiner.add("\"port\": " + port);
-    joiner.add("\"service-docker\": " + servicePort);
+    joiner.add("\"service-port\": " + servicePort);
     joiner.add("\"docker-instance\":\"" + dockerInstance + "\"");
     return joiner.toString();
   }

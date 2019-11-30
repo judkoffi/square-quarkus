@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import fr.umlv.square.service.AutoScaleService;
 import fr.umlv.square.service.InstanceBackUpService;
+import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
 /**
@@ -36,4 +37,7 @@ public class AppLifecycleBean {
     autoScaleService.start();
   }
 
+  void onStop(@Observes ShutdownEvent ev) {
+    autoScaleService.stop();
+  }
 }

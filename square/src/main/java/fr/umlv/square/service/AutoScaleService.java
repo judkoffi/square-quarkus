@@ -65,7 +65,7 @@ public class AutoScaleService {
     scaleMap.compute(appName, (k, v) ->
     {
       if (v == null)
-        return new ScalingCounter(0, 1);
+        return new ScalingCounter(1, 1);
       v.runningInstanceCounter++;
       return v;
     });

@@ -1,10 +1,10 @@
 package fr.umlv.square.util;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -21,9 +21,9 @@ import fr.umlv.square.model.service.ImageInfo;
 public class ProcessBuilderHelper {
   private final ProcessBuilder processBuilder;
 
-  public ProcessBuilderHelper() {
+  public ProcessBuilderHelper(String processBuilderPath) {
     // this.processBuilder = new ProcessBuilder().directory(new File("./")); Packaged
-    this.processBuilder = new ProcessBuilder().directory(new File("../.."));
+    this.processBuilder = new ProcessBuilder().directory(Path.of(processBuilderPath).toFile());
   }
 
   /* Helper method use to display output after run command on terminal */

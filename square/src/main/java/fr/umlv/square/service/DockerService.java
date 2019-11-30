@@ -51,9 +51,10 @@ public class DockerService {
    * @ConfigProperty(name = "quarkus.http.host") read this api host from application.properties
    */
   @Inject
-  public DockerService(AutoScaleService autoScaleService) {
+  public DockerService(AutoScaleService autoScaleService,
+      @ConfigProperty(name = "process.builder.path") String processBuilderPath) {
     this.runningInstanceMap = new ConcurrentHashMap<>();
-    this.processHelper = new ProcessBuilderHelper();
+    this.processHelper = new ProcessBuilderHelper(processBuilderPath);
     this.autoScaleService = autoScaleService;
   }
 
@@ -91,7 +92,9 @@ public class DockerService {
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
     var dockerFilePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var dockerFileContent = buildDockerFileContent(appName, appPort);
-
+    System.out
+      .println(
+          "path " + processHelper.getRootPah() + DOCKERFILES_DIRECTORY + "Dockerfile." + appName);
     if (isNewImage(
         Path.of(processHelper.getRootPah() + DOCKERFILES_DIRECTORY + "Dockerfile." + appName),
         dockerFileContent)) {
@@ -208,16 +211,19 @@ public class DockerService {
   public Optional<DeployResponse> runContainer(String appName, int appPort) {
     try {
       var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
-      if (!makeDockerfile)
+      if (!makeDockerfile) {
+        System.err.println("makefilee");
         return Optional.empty();
+      }
 
       var imageInfo = runBuildedImage(appName, appPort);
-      if (imageInfo.isEmpty())
+      if (imageInfo.isEmpty()) {
+        System.err.println("runn");
         return Optional.empty();
+      }
 
       var info = imageInfo.get();
       runningInstanceMap.put(info.getSquareId(), info);
-
       autoScaleService.incInstanceCounter(info.getImageName() + ":" + info.getAppPort());
 
       LOGGER.info("new running instance {}", info);

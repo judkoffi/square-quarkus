@@ -2,6 +2,7 @@ package fr.umlv.square.service;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import fr.umlv.square.util.ProcessBuilderHelper;
 
 /**
@@ -12,10 +13,13 @@ import fr.umlv.square.util.ProcessBuilderHelper;
 @ApplicationScoped
 public class InstanceBackUpService {
   private final DockerService dockerService;
+  private final String processBuilderPath;
 
   @Inject
-  public InstanceBackUpService(DockerService dockerService) {
+  public InstanceBackUpService(DockerService dockerService,
+      @ConfigProperty(name = "process.builder.path") String processBuilderPath) {
     this.dockerService = dockerService;
+    this.processBuilderPath = processBuilderPath;
   }
 
   /**
@@ -23,7 +27,7 @@ public class InstanceBackUpService {
    * instances
    */
   public void readSavedInstance() {
-    var helper = new ProcessBuilderHelper();
+    var helper = new ProcessBuilderHelper(processBuilderPath);
     var cmd =
         "docker ps --format 'table {{.ID}}\\t{{.Image}}\\t{{.Command}}\\t{{.CreatedAt}}\\t{{.Status}}\\t{{.Ports}}\\t{{.Names}}'";
     var output = helper.execOutputCommand(cmd);
