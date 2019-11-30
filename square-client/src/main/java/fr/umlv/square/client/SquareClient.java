@@ -79,6 +79,11 @@ class SquareClient {
     }
   }
 
+  /**
+   * Send to Square the new status of the app
+   * @param appIsAlive : true if the app to update is alive, false otherwise
+   * @return true if the request has been correctly sent
+   */
   public boolean sendAppStatus(boolean appIsAlive) {
     synchronized (lock) {
       var uri = squareUrl + STATUS_ENDPOINT;

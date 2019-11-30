@@ -109,6 +109,7 @@ public class Worker {
     }
   }
 
+  // Get the standard output of a process builder command
   private static String getOutputOfCommand(InputStream outputStream) throws IOException {
     var reader = new BufferedReader(new InputStreamReader(outputStream));
     var builder = new StringBuilder();
@@ -120,6 +121,10 @@ public class Worker {
     return builder.toString();
   }
 
+  /**
+   * Update the boolean appIsALive according to the result of a ps command. 
+   * If the app has been found in the ps, the app is alive, otherwise it's dead
+   */
   public void checkAppAlive() {
     synchronized (lock) {
       var processBuilder = new ProcessBuilder();
