@@ -1,26 +1,14 @@
 default:
   image: maven:latest
-  services:
-    - openjdk:latest
-    - docker:latest
 
 stages:
   - build
-  - test
 
 build_square:
   stage: build
   script:
-    - docker -v
     - cd square
     - ./mvnw compile
-
-test_square:
-  stage: test
-  script:
-    - docker -v
-    - cd square
-    - ./mvnw test
 
 build_square_client:
   stage: build
