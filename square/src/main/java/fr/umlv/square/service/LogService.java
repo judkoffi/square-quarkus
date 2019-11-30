@@ -1,18 +1,15 @@
 package fr.umlv.square.service;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.orm.LogTable;
+import fr.umlv.square.util.Helper;
 
 /**
  * Class use as an interface between database repository and square application to have access of
@@ -22,7 +19,6 @@ import fr.umlv.square.orm.LogTable;
 @ApplicationScoped
 public class LogService {
   private final LogTable databaseRepository;
-  private static final Logger LOGGER = LoggerFactory.getLogger(LogService.class);
 
   @Inject
   public LogService(LogTable databaseRepository) {
@@ -52,9 +48,12 @@ public class LogService {
   public List<LogEntity> getLogsFilteredByTime(String timestamp) {
     var timeTarget = convertMinuteToMillisecond(Long.parseLong(timestamp));
     var timeWithoutOffset = (System.currentTimeMillis() - timeTarget)
-        - TimeUnit.SECONDS.toMillis(ZonedDateTime.now().getOffset().getTotalSeconds());
+        - (TimeUnit.SECONDS.toMillis(ZonedDateTime.now().getOffset().getTotalSeconds()));
     var filterTimestamp = "" + new Timestamp(timeWithoutOffset);
-    return databaseRepository.find("date >= ?1", convertStringToTimestamp(filterTimestamp)).list();
+    return databaseRepository
+      .find("date >= ?1",
+          Helper.convertStringToTimestamp(filterTimestamp, "yyyy-MM-dd HH:mm:ss.SSS"))
+      .list();
   }
 
   /**
@@ -75,17 +74,5 @@ public class LogService {
    */
   private static long convertMinuteToMillisecond(long minutes) {
     return TimeUnit.MINUTES.toMillis(minutes);
-  }
-
-  // convert a date as a String into a date as a Timestamp
-  private static Timestamp convertStringToTimestamp(String strDate) {
-    try {
-      var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-      var date = formatter.parse(strDate);
-      return new Timestamp(date.getTime());
-    } catch (ParseException e) {
-      LOGGER.error("Exception : {}", e);
-      return null;
-    }
   }
 }

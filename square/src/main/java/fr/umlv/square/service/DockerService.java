@@ -34,11 +34,8 @@ public class DockerService {
   private final ProcessBuilderHelper processHelper;
   private static final Logger LOGGER = LoggerFactory.getLogger(DockerService.class);
   private final AutoScaleService autoScaleService;
-
-  @ConfigProperty(name = "quarkus.http.host")
-  String squareHost;
-  @ConfigProperty(name = "quarkus.http.port")
-  String squarePort;
+  private final String squareHost;
+  private final String squarePort;
 
   static {
     DOCKERFILE_TEMPLATE = "FROM hirokimatsumoto/alpine-openjdk-11\n" + "WORKDIR /app\n"
@@ -52,10 +49,14 @@ public class DockerService {
    */
   @Inject
   public DockerService(AutoScaleService autoScaleService,
-      @ConfigProperty(name = "process.builder.path") String processBuilderPath) {
+      @ConfigProperty(name = "process.builder.path") String processBuilderPath,
+      @ConfigProperty(name = "quarkus.http.host") String squareHost,
+      @ConfigProperty(name = "quarkus.http.port") String squarePort) {
     this.runningInstanceMap = new ConcurrentHashMap<>();
     this.processHelper = new ProcessBuilderHelper(processBuilderPath);
     this.autoScaleService = autoScaleService;
+    this.squareHost = squareHost;
+    this.squarePort = squarePort;
   }
 
   /*
@@ -92,9 +93,6 @@ public class DockerService {
   private boolean generateAndBuildDockerFile(String appName, int appPort) {
     var dockerFilePath = DOCKERFILES_DIRECTORY + "Dockerfile." + appName;
     var dockerFileContent = buildDockerFileContent(appName, appPort);
-    System.out
-      .println(
-          "path " + processHelper.getRootPah() + DOCKERFILES_DIRECTORY + "Dockerfile." + appName);
     if (isNewImage(
         Path.of(processHelper.getRootPah() + DOCKERFILES_DIRECTORY + "Dockerfile." + appName),
         dockerFileContent)) {
@@ -128,10 +126,9 @@ public class DockerService {
     }
   }
 
-  // TODO: Remove modulo
   // This method execute the command docker run to run an image into a docker
   private int runImage(String imageName, int appPort, int servicePort) {
-    var id = generateId() % 500;
+    var id = generateId();
     var uniqueName = imageName + "-" + id;
     var cmd = "docker run --rm -d -p " + servicePort + ":" + appPort + " --name " + uniqueName
         + " --hostname=" + uniqueName + " " + imageName;
@@ -191,16 +188,6 @@ public class DockerService {
   }
 
   /**
-   * Allow to get the map of running instance information
-   * 
-   * @return : HashMap<Integer, ImageInfo> : the map which associate an Integer (the id of the
-   *         instance) to an ImageInfo
-   */
-  ConcurrentHashMap<Integer, ImageInfo> getRunningInstanceMap() {
-    return runningInstanceMap;
-  }
-
-  /**
    * Execute all the processus to run a container
    * 
    * @param appName: name of application to be deploy in docker container
@@ -212,13 +199,13 @@ public class DockerService {
     try {
       var makeDockerfile = generateAndBuildDockerFile(appName, appPort);
       if (!makeDockerfile) {
-        System.err.println("makefilee");
+        LOGGER.error("makefilee");
         return Optional.empty();
       }
 
       var imageInfo = runBuildedImage(appName, appPort);
       if (imageInfo.isEmpty()) {
-        System.err.println("runn");
+        LOGGER.error("runn");
         return Optional.empty();
       }
 
@@ -310,9 +297,16 @@ public class DockerService {
   public void updateDockerInstanceStatus(ImageInfo instance, boolean status) {
     var targetInstance = runningInstanceMap.get(instance.getSquareId());
     targetInstance.updateIsAlive(status);
-    System.out.println(runningInstanceMap);
+    LOGGER.info(runningInstanceMap.toString());
   }
 
+  /**
+   * Find an instance which an specified appName, it's use to remove instance by auto scale service
+   * 
+   * @param appName: app name
+   * @param appPort: app port
+   * @return: an id which reprensent a running instance or -1 if nothing is found
+   */
   public int findFirstInstanceByAppNamePort(String appName, int appPort) {
     var opt = runningInstanceMap
       .entrySet()
@@ -320,7 +314,6 @@ public class DockerService {
       .filter(
           p -> p.getValue().getImageName().equals(appName) && p.getValue().getAppPort() == appPort)
       .findAny();
-
     return (opt.isEmpty()) ? -1 : opt.get().getKey();
   }
 }

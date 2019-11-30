@@ -5,7 +5,6 @@ package fr.umlv.square.util;
  */
 
 public class SquareHttpStatusCode {
-
   // This class cannot be instantiated
   private SquareHttpStatusCode() {
     throw new IllegalStateException("Utility class");

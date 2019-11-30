@@ -17,7 +17,6 @@ import fr.umlv.square.model.service.ImageInfo;
 /**
  * This class is used to get some information on a process builder execution
  */
-
 public class ProcessBuilderHelper {
   private final ProcessBuilder processBuilder;
 

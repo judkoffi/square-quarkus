@@ -69,7 +69,7 @@ public class ImageInfo {
   public String toString() {
     return "ImageInfo [imageName=" + imageName + ", created=" + created + ", appPort=" + appPort
         + ", servicePort=" + servicePort + ", dockerInstance=" + dockerInstance + ", squareId="
-        + squareId + "]";
+        + squareId + ",status " + isAlive + "]";
   }
 
   public void updateIsAlive(boolean status) {

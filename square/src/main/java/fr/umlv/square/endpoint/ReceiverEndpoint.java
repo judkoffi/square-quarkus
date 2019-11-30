@@ -1,8 +1,5 @@
 package fr.umlv.square.endpoint;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -20,6 +17,7 @@ import fr.umlv.square.model.request.ClientStatusRequest;
 import fr.umlv.square.orm.LogEntity;
 import fr.umlv.square.service.DockerService;
 import fr.umlv.square.service.LogService;
+import fr.umlv.square.util.Helper;
 
 /**
  * This class defines all the endpoints which begin with "/container-log"
@@ -40,18 +38,6 @@ public class ReceiverEndpoint {
     this.logService = logService;
   }
 
-  // Convert a date as a String into a date as a Timestamp
-  private static Timestamp convertStringToTimestamp(String strDate) {
-    try {
-      var formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
-      var date = formatter.parse(strDate);
-      return new Timestamp(date.getTime());
-    } catch (ParseException e) {
-      LOGGER.error("Exception : {}", e);
-      return null;
-    }
-  }
-
   /**
    * Endpoint to receive log from square-client lib store inside each docker instance
    * 
@@ -66,8 +52,9 @@ public class ReceiverEndpoint {
 
     var entities = logs
       .stream()
-      .map(log -> new LogEntity(imageInfo.getSquareId(), convertStringToTimestamp(log.getDate()),
-          log.getLevel(), log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(),
+      .map(log -> new LogEntity(imageInfo.getSquareId(),
+          Helper.convertStringToTimestamp(log.getDate(), "yyyy-MM-dd HH:mm:ss,SSS"), log.getLevel(),
+          log.getMessage(), request.getDockerInstance(), imageInfo.getImageName(),
           imageInfo.getAppPort(), imageInfo.getServicePort()))
       .collect(Collectors.toList());
 

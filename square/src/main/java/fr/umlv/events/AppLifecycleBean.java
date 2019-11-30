@@ -27,9 +27,9 @@ public class AppLifecycleBean {
   }
 
   /**
-   * This method is executed when the app starts
+   * This method is executed when the square start
    * 
-   * @param ev : the event when the app starts
+   * @param ev : the start event listener
    */
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("The application is starting... and PID: {}", ProcessHandle.current().pid());
@@ -37,6 +37,11 @@ public class AppLifecycleBean {
     autoScaleService.start();
   }
 
+  /**
+   * This method is executed when the square stop
+   * 
+   * @param ev : the sport event listener
+   */
   void onStop(@Observes ShutdownEvent ev) {
     autoScaleService.stop();
   }
