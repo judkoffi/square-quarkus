@@ -1,3 +1,4 @@
+#!bin/bash 
 echo "============== Install docker ==============" 
 apt-get update
 apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common
@@ -22,5 +23,8 @@ apt-get install git
 echo "============================================="
 echo "============================================="
 echo "============== pull depo ================"
-#git clone https://gitlab.com/esipe-info2019/dacosta-koffi.git
+git clone https://gitlab.com/esipe-info2019/dacosta-koffi.git
+echo "============================================="
+echo "=================== cd dacosta-koffi/ =============="
+cd dacosta-koffi/
 echo "============================================="

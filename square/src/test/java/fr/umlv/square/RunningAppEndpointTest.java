@@ -5,56 +5,47 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import javax.validation.constraints.NotNull;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.junit.jupiter.api.TestMethodOrder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.common.mapper.TypeRef;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RunningAppEndpointTest {
 
-  @NotNull
-  private TypeRef<ArrayList<TestRunningInstance>> getDeployResponseTypeRef() {
-    return new TypeRef<ArrayList<TestRunningInstance>>() {
-      // Kept empty on purpose
-    };
+  public static void clean() {
+    var list = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/app/list")
+      .then()
+      .statusCode(200)
+      .extract()
+      .as(ModelClassesForTests.getDeployResponseTypeRef());
+    list.forEach(action -> stopInstance(action.id));
   }
 
-  private static class TestDeployResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-    @JsonProperty("id")
-    int id;
-    @JsonProperty("port")
-    int port;
-    @JsonProperty("app")
-    String appName;
-    @JsonProperty("service-port")
-    int servicePort;
-    @JsonProperty("docker-instance")
-    String dockerInstance;
-  }
-
-  private static class TestRunningInstance extends TestDeployResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-    @JsonProperty("elapsed-time")
-    String elapsedTime;
-
-    @Override
-    public String toString() {
-      return "app: " + appName;
-    }
+  private static void stopInstance(int id) {
+    given()
+      .contentType(ContentType.JSON)
+      .body("{\"id\": " + id + " }")
+      .when()
+      .post("/app/stop")
+      .then()
+      .statusCode(201);
   }
 
   @Test
   @Order(1)
+  public void clear() {
+    clean();
+  }
+
+  @Test
+  @Order(2)
   public void testEmptyPostBodyDeployEndpoint() {
     given()
       .contentType(ContentType.JSON)
@@ -67,7 +58,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(2)
+  @Order(3)
   public void testBadRequestDeployEndpoint() {
     given()
       .contentType(ContentType.JSON)
@@ -80,7 +71,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(3)
+  @Order(4)
   public void testBadRequestDeployEndpoint2() {
     given()
       .contentType(ContentType.JSON)
@@ -93,7 +84,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(4)
+  @Order(5)
   public void testDeployEndpoint() {
     given()
       .contentType(ContentType.JSON)
@@ -117,7 +108,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(5)
+  @Order(6)
   public void testBadRequestDeployEndpoint4() {
     given()
       .contentType(ContentType.JSON)
@@ -130,7 +121,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   public void testBadRequestStop2() {
     given()
       .contentType(ContentType.JSON)
@@ -144,7 +135,7 @@ public class RunningAppEndpointTest {
 
 
   @Test
-  @Order(7)
+  @Order(8)
   public void testBadAPPDeployEndpoint() {
     given()
       .contentType(ContentType.JSON)
@@ -158,7 +149,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(8)
+  @Order(9)
   public void testBadRequestDeployEndpoint3() {
     given()
       .contentType(ContentType.JSON)
@@ -171,7 +162,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(9)
+  @Order(10)
   public void testBadRequestStop() {
     given()
       .contentType(ContentType.JSON)
@@ -184,9 +175,8 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(10)
+  @Order(11)
   public void testListEndpoint() throws InterruptedException {
-    TimeUnit.SECONDS.sleep(5);
     var result = given()
       .contentType(ContentType.JSON)
       .when()
@@ -194,11 +184,10 @@ public class RunningAppEndpointTest {
       .then()
       .statusCode(200)
       .extract()
-      .as(getDeployResponseTypeRef());
-
-    System.out.println(result);
+      .as(ModelClassesForTests.getDeployResponseTypeRef());
 
     var tmp = result.stream().filter((p) -> p.appName.equals("fruitapi")).findFirst().get();
+    var tmp2 = result.stream().filter((p) -> p.appName.equals("helloapp")).findFirst().get();
 
     assertAll(() ->
     {
@@ -208,11 +197,16 @@ public class RunningAppEndpointTest {
       assertEquals("fruitapi", tmp.appName);
       assertEquals(8080, tmp.port);
       assertEquals("fruitapi-" + tmp.id, tmp.dockerInstance);
+    }, () ->
+    {
+      assertEquals("helloapp", tmp2.appName);
+      assertEquals(8080, tmp2.port);
+      assertEquals("helloapp-" + tmp2.id, tmp2.dockerInstance);
     });
   }
 
   @Test
-  @Order(11)
+  @Order(12)
   public void testStopEndpointWithUnknowId() {
     given()
       .contentType(ContentType.JSON)
@@ -225,7 +219,7 @@ public class RunningAppEndpointTest {
   }
 
   @Test
-  @Order(12)
+  @Order(13)
   public void testStopEndpoint() {
     var result = given()
       .contentType(ContentType.JSON)
@@ -236,7 +230,7 @@ public class RunningAppEndpointTest {
       .statusCode(201)
       .assertThat()
       .extract()
-      .as(TestDeployResponse.class);
+      .as(ModelClassesForTests.TestDeployResponse.class);
 
     var tmp = given()
       .contentType(ContentType.JSON)
@@ -247,7 +241,7 @@ public class RunningAppEndpointTest {
       .statusCode(201)
       .body(not("{}"))
       .extract()
-      .as(TestRunningInstance.class);
+      .as(ModelClassesForTests.TestRunningInstance.class);
 
     assertAll(() ->
     {
@@ -258,9 +252,16 @@ public class RunningAppEndpointTest {
     });
   }
 
-  @AfterAll
-  public static void cleanInstance() throws InterruptedException, IOException {
-    var process = new ProcessBuilder("bash", "-c", "docker kill $(docker ps -aq)");
-    process.start().waitFor();
+  @Test
+  @Order(14)
+  public void testBadRequestDeployEndpoint5() {
+    given()
+      .contentType(ContentType.JSON)
+      .body("{\"app\": \" \"}")
+      .when()
+      .post("/app/deploy")
+      .then()
+      .statusCode(400)
+      .body(is("Invalid post body"));
   }
 }

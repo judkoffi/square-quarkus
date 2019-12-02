@@ -57,10 +57,7 @@ public class AutoScaleEndpoint {
     if (!validRequest(request))
       return Response.status(SquareHttpStatusCode.BAD_REQUEST_STATUS_CODE).build();
 
-
-    if (!autoScaleService.isStarted()) {
-      autoScaleService.start();
-    }
+    autoScaleService.startScaling();
 
     autoScaleService.updateScalingConfig(request);
     var body = autoScaleService.getScalingStatus();
@@ -98,7 +95,7 @@ public class AutoScaleEndpoint {
    * @return a Response JSON which give the number of instance handled by auto scale
    */
   public Response stop() {
-    autoScaleService.stop();
+    autoScaleService.stopScaling();
     var body = autoScaleService.getScalingConfig();
     try (var jsonBuilder = JsonbBuilder.create()) {
       return Response.ok().entity(jsonBuilder.toJson(body)).build();
