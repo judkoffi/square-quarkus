@@ -3,7 +3,7 @@ WORKDIR /app
 COPY apps/fruitapi.jar /app/app.jar
 COPY lib-client/square-client.jar /app/client.jar
 ENV SQUARE_HOST=192.168.43.184
-ENV SQUARE_PORT=8081
+ENV SQUARE_PORT=8080
 RUN chmod 775 /app
 EXPOSE 8080
 CMD java -jar client.jar
