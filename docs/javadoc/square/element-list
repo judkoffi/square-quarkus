@@ -1,0 +1,9 @@
+fr.umlv.events
+fr.umlv.square
+fr.umlv.square.endpoint
+fr.umlv.square.model.request
+fr.umlv.square.model.response
+fr.umlv.square.model.service
+fr.umlv.square.orm
+fr.umlv.square.service
+fr.umlv.square.util

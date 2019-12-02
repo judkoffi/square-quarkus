@@ -3,6 +3,7 @@ package fr.umlv.square;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.net.URI;
@@ -160,6 +161,90 @@ public class LogEndpointTest {
       .as(ModelClassesForTests.getLogsResponseTypeRef());
 
     assertTrue(result.size() >= 7);
+  }
+
+  @Test
+  @Order(7)
+  public void testGoodRequestTimelogsWIthInstanceFilter() throws InterruptedException {
+    var list = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/app/list")
+      .then()
+      .statusCode(200)
+      .extract()
+      .as(ModelClassesForTests.getDeployResponseTypeRef());
+
+    var tmp = list.stream().filter((p) -> p.appName.equals("fruitapi")).findFirst().get();
+    var tmp2 = list.stream().filter((p) -> p.appName.equals("helloapp")).findFirst().get();
+
+    var resultFruitApi = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/logs/10/" + tmp.dockerInstance)
+      .then()
+      .statusCode(200)
+      .assertThat()
+      .extract()
+      .as(ModelClassesForTests.getLogsResponseTypeRef());
+
+    var resultHelloApp = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/logs/10/" + tmp2.dockerInstance)
+      .then()
+      .statusCode(200)
+      .assertThat()
+      .extract()
+      .as(ModelClassesForTests.getLogsResponseTypeRef());
+
+    assertAll(() ->
+    {
+      assertTrue(resultFruitApi.size() >= 3);
+      assertTrue(resultHelloApp.size() >= 3);
+    });
+  }
+
+  @Test
+  @Order(8)
+  public void testGoodRequestTimelogsWIthIdFilter() throws InterruptedException {
+    var list = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/app/list")
+      .then()
+      .statusCode(200)
+      .extract()
+      .as(ModelClassesForTests.getDeployResponseTypeRef());
+
+    var tmp = list.stream().filter((p) -> p.appName.equals("fruitapi")).findFirst().get();
+    var tmp2 = list.stream().filter((p) -> p.appName.equals("helloapp")).findFirst().get();
+
+    var resultFruitApi = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/logs/10/" + tmp.id)
+      .then()
+      .statusCode(200)
+      .assertThat()
+      .extract()
+      .as(ModelClassesForTests.getLogsResponseTypeRef());
+
+    var resultHelloApp = given()
+      .contentType(ContentType.JSON)
+      .when()
+      .get("/logs/10/" + tmp2.id)
+      .then()
+      .statusCode(200)
+      .assertThat()
+      .extract()
+      .as(ModelClassesForTests.getLogsResponseTypeRef());
+
+    assertAll(() ->
+    {
+      assertTrue(resultFruitApi.size() >= 3);
+      assertTrue(resultHelloApp.size() >= 3);
+    });
   }
 
 }

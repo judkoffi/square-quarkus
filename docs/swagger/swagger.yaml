@@ -1,0 +1,456 @@
+---
+openapi: 3.0.1
+info:
+  title: Generated API
+  version: "1.0"
+paths:
+  /app/deploy:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployInstanceRequest'
+      responses:
+        200:
+          description: OK
+  /app/list:
+    get:
+      responses:
+        200:
+          description: OK
+  /app/stop:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StopInstanceRequest'
+      responses:
+        200:
+          description: OK
+  /auto-scale/status:
+    get:
+      responses:
+        200:
+          description: OK
+  /auto-scale/stop:
+    get:
+      responses:
+        200:
+          description: OK
+  /auto-scale/update:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MapStringInteger'
+      responses:
+        200:
+          description: OK
+  /container-log/logs:
+    get:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientLogRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListLogEntity'
+  /container-log/send-log:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientLogRequest'
+      responses:
+        200:
+          description: OK
+  /container-log/status:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientStatusRequest'
+      responses:
+        200:
+          description: OK
+  /healthcheck:
+    get:
+      responses:
+        200:
+          description: OK
+  /logs/{time}:
+    get:
+      parameters:
+      - name: time
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: OK
+  /logs/{time}/{filter}:
+    get:
+      parameters:
+      - name: filter
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: time
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: OK
+components:
+  schemas:
+    DeployInstanceRequest:
+      required:
+      - app
+      type: object
+      properties:
+        app:
+          pattern: \S
+          type: string
+          nullable: false
+        appName:
+          type: string
+        port:
+          format: int32
+          type: integer
+    StopInstanceRequest:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          format: int32
+          minimum: 1
+          pattern: ^\d{1,2147483647}$
+          type: integer
+          nullable: false
+    MapStringInteger:
+      $ref: '#/components/schemas/MapStringInteger'
+    ReceivedLogModel:
+      type: object
+      properties:
+        date:
+          type: string
+        level:
+          type: string
+        message:
+          type: string
+    ListReceivedLogModel:
+      type: array
+      items:
+        $ref: '#/components/schemas/ReceivedLogModel'
+    ClientLogRequest:
+      required:
+      - dockerInstance
+      - logs
+      type: object
+      properties:
+        dockerInstance:
+          pattern: \S
+          type: string
+          nullable: false
+        logs:
+          allOf:
+          - $ref: '#/components/schemas/ListReceivedLogModel'
+          - items:
+              $ref: '#/components/schemas/ReceivedLogModel'
+            nullable: false
+    LogEntity:
+      type: object
+      properties:
+        id:
+          format: int64
+          type: integer
+        appName:
+          type: string
+        date:
+          $ref: '#/components/schemas/Timestamp'
+        dockerInstance:
+          type: string
+        level:
+          type: string
+        message:
+          type: string
+        port:
+          format: int32
+          type: integer
+        servicePort:
+          format: int32
+          type: integer
+        squareId:
+          format: int32
+          type: integer
+    ListLogEntity:
+      $ref: '#/components/schemas/ListLogEntity'
+    Timestamp:
+      type: object
+      properties:
+        calendarDate:
+          $ref: '#/components/schemas/Date'
+        date:
+          format: int32
+          type: integer
+        day:
+          format: int32
+          type: integer
+        hours:
+          format: int32
+          type: integer
+        minutes:
+          format: int32
+          type: integer
+        month:
+          format: int32
+          type: integer
+        seconds:
+          format: int32
+          type: integer
+        timeImpl:
+          format: int64
+          type: integer
+        timezoneOffset:
+          format: int32
+          type: integer
+        year:
+          format: int32
+          type: integer
+        nanos:
+          format: int32
+          type: integer
+        time:
+          format: int64
+          type: integer
+    Date:
+      type: object
+      properties:
+        dayOfMonth:
+          format: int32
+          type: integer
+        dayOfWeek:
+          format: int32
+          type: integer
+        daylightSaving:
+          format: int32
+          type: integer
+        era:
+          $ref: '#/components/schemas/Era'
+        forceStandardTime:
+          type: boolean
+        fraction:
+          format: int64
+          type: integer
+        hours:
+          format: int32
+          type: integer
+        leapYear:
+          type: boolean
+        locale:
+          $ref: '#/components/schemas/Locale'
+        millis:
+          format: int32
+          type: integer
+        minutes:
+          format: int32
+          type: integer
+        month:
+          format: int32
+          type: integer
+        normalized:
+          type: boolean
+        seconds:
+          format: int32
+          type: integer
+        year:
+          format: int32
+          type: integer
+        zoneOffset:
+          format: int32
+          type: integer
+        zoneinfo:
+          $ref: '#/components/schemas/TimeZone'
+        timeOfDay:
+          format: int64
+          type: integer
+        zone:
+          $ref: '#/components/schemas/TimeZone'
+        daylightTime:
+          type: boolean
+        standardTime:
+          type: boolean
+        cachedFixedDateJan1:
+          format: int64
+          type: integer
+        cachedFixedDateNextJan1:
+          format: int64
+          type: integer
+        cachedYear:
+          format: int32
+          type: integer
+        cachedJan1:
+          format: int64
+          type: integer
+        normalizedYear:
+          format: int32
+          type: integer
+    Era:
+      type: object
+      properties:
+        abbr:
+          type: string
+        hash:
+          format: int32
+          type: integer
+        localTime:
+          type: boolean
+        name:
+          type: string
+        since:
+          format: int64
+          type: integer
+        sinceDate:
+          $ref: '#/components/schemas/CalendarDate'
+        abbreviation:
+          type: string
+    Locale:
+      type: object
+      properties:
+        country:
+          type: string
+        displayCountry:
+          type: string
+        displayLanguage:
+          type: string
+        displayName:
+          type: string
+        displayScript:
+          type: string
+        displayVariant:
+          type: string
+        extensionKeys:
+          $ref: '#/components/schemas/SetCharacter'
+        iSO3Country:
+          type: string
+        iSO3Language:
+          type: string
+        language:
+          type: string
+        script:
+          type: string
+        unicodeLocaleAttributes:
+          $ref: '#/components/schemas/SetString'
+        unicodeLocaleKeys:
+          $ref: '#/components/schemas/SetString'
+        variant:
+          type: string
+    TimeZone:
+      type: object
+      properties:
+        ID:
+          type: string
+        dSTSavings:
+          format: int32
+          type: integer
+        displayName:
+          type: string
+        iD:
+          type: string
+        rawOffset:
+          format: int32
+          type: integer
+    SetCharacter:
+      type: array
+      items:
+        format: byte
+        type: string
+    SetString:
+      type: array
+      items:
+        type: string
+    CalendarDate:
+      type: object
+      properties:
+        dayOfMonth:
+          format: int32
+          type: integer
+        dayOfWeek:
+          format: int32
+          type: integer
+        daylightSaving:
+          format: int32
+          type: integer
+        era:
+          $ref: '#/components/schemas/Era'
+        forceStandardTime:
+          type: boolean
+        fraction:
+          format: int64
+          type: integer
+        hours:
+          format: int32
+          type: integer
+        leapYear:
+          type: boolean
+        locale:
+          $ref: '#/components/schemas/Locale'
+        millis:
+          format: int32
+          type: integer
+        minutes:
+          format: int32
+          type: integer
+        month:
+          format: int32
+          type: integer
+        normalized:
+          type: boolean
+        seconds:
+          format: int32
+          type: integer
+        year:
+          format: int32
+          type: integer
+        zoneOffset:
+          format: int32
+          type: integer
+        zoneinfo:
+          $ref: '#/components/schemas/TimeZone'
+        timeOfDay:
+          format: int64
+          type: integer
+        zone:
+          $ref: '#/components/schemas/TimeZone'
+        daylightTime:
+          type: boolean
+        standardTime:
+          type: boolean
+    ClientStatusRequest:
+      required:
+      - dockerInstance
+      - status
+      type: object
+      properties:
+        dockerInstance:
+          pattern: \S
+          type: string
+          nullable: false
+        status:
+          type: boolean
+          nullable: false

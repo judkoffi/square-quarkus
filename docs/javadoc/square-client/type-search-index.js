@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes","url":"allclasses-index.html"},{"p":"fr.umlv.square.client.model","l":"LogModel"},{"p":"fr.umlv.square.client.main","l":"Main"},{"p":"fr.umlv.square.client","l":"SquareClientTest"},{"p":"fr.umlv.square.client","l":"Worker"}]

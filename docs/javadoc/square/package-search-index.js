@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"fr.umlv.events"},{"l":"fr.umlv.square.endpoint"},{"l":"fr.umlv.square.model.request"},{"l":"fr.umlv.square.model.response"},{"l":"fr.umlv.square.model.service"},{"l":"fr.umlv.square.orm"},{"l":"fr.umlv.square.service"},{"l":"fr.umlv.square.util"}]
