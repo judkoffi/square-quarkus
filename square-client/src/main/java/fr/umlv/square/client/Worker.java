@@ -101,9 +101,9 @@ public class Worker {
          */
         if (squareClient.sendInfoLog(list)) {
           readingIndex = readingIndex + list.size();
-          System.out.println("send, index" + readingIndex);
+          System.out.println("send, index: " + readingIndex);
         } else {
-          System.out.println("No send, index" + readingIndex);
+          System.out.println("No send, index: " + readingIndex);
         }
       }
     }

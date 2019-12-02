@@ -18,7 +18,6 @@ public class Main {
       System.exit(-1);
     }
 
-    // TODO: Interrupted thread if app is killed
     while (!Thread.interrupted()) {
       new Thread(() ->
       {

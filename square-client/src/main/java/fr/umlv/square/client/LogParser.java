@@ -1,5 +1,6 @@
 package fr.umlv.square.client;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 import fr.umlv.square.client.model.LogModel;
 
@@ -9,20 +10,26 @@ import fr.umlv.square.client.model.LogModel;
  *
  */
 class LogParser {
+
+  // To prevent defaut constructor using
+  private LogParser() {
+
+  }
+
   /*
    * Regex use to extract date of log
    */
-  private final static String TIMESTAMP_REGEX =
+  private static final String TIMESTAMP_REGEX =
       "(?<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3})";
   /*
    * Regex use to extract level of log
    */
-  private final static String LEVEL_REGEX = "(?<level>INFO|SEVERE|WARN|TRACE|DEBUG|FATAL)";
+  private static final String LEVEL_REGEX = "(?<level>INFO|SEVERE|WARN|TRACE|DEBUG|FATAL)";
 
   /*
    * Regex use to extract message of log
    */
-  private final static String TEXT_REGEX = "(?<text>.*)";
+  private static final String TEXT_REGEX = "(?<text>.*)";
 
   /*
    * Regex which combine date, level and message regex to extract line of log
@@ -37,6 +44,7 @@ class LogParser {
    * @return a {@LogModel} which contains extract information from log line read from log's file
    */
   public static LogModel parseLine(String lineToParse) {
+    Objects.requireNonNull(lineToParse);
     var matcher = linePattern.matcher(lineToParse);
     String date = "";
     String level = "";

@@ -41,7 +41,7 @@ public class AutoScaleService {
   private void scaleWork() {
     if (!isStarted)
       return;
-    
+
     scaleMap.forEach((key, value) ->
     {
       /*
@@ -71,6 +71,24 @@ public class AutoScaleService {
   /**
    * Start auto scaling
    */
+  public void startScaling() {
+    LOGGER.info("restart start auto scale");
+    if (!isStarted)
+      isStarted = true;
+  }
+
+  /**
+   * Stop auto scaling
+   */
+  public void stopScaling() {
+    LOGGER.info("stop task scale");
+    isStarted = false;
+  }
+
+
+  /**
+   * Start auto scaling at start of square
+   */
   public void start() {
     LOGGER.info("start auto scale");
     isStarted = true;
@@ -78,7 +96,7 @@ public class AutoScaleService {
   }
 
   /**
-   * Stop auto scaling
+   * Stop auto scaling at stop of square
    */
   public void stop() {
     LOGGER.info("stop auto scale");
@@ -142,6 +160,11 @@ public class AutoScaleService {
    */
   public Map<String, String> getScalingStatus() {
     var map = new HashMap<String, String>();
+    if (!isStarted) {
+      dockerService.getMapKeys().forEach(key -> map.put(key, "need nothing"));
+      return map;
+    }
+
     scaleMap.forEach((key, value) ->
     {
       var diff = value.runningInstanceCounter - value.scalingInstanceCounter;
@@ -209,12 +232,4 @@ public class AutoScaleService {
     }
   }
 
-  /**
-   * Use to know if auto scale is started
-   * 
-   * @return true is auto scale is activated or false if not
-   */
-  public boolean isStarted() {
-    return isStarted;
-  }
 }
